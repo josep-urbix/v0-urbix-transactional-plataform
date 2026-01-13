@@ -56,20 +56,25 @@ export async function GET(request: NextRequest) {
 
     const whereClause = whereConditions.join(" AND ")
 
-    // Get total count using sql.query with parameterized query
-    const countQuery = `SELECT COUNT(*) as total FROM investors.lemonway_account_requests WHERE ${whereClause}`
-    const countResult = await sql.query(countQuery, queryParams)
-    const total = countResult[0]?.total || 0
-
-    // Get paginated data using sql.query
-    const dataQuery = `SELECT 
-      id, request_reference, status, validation_status, first_name, last_name, email,
-      lemonway_wallet_id, created_at, updated_at, submitted_at, kyc_1_completed_at,
-      kyc_2_completed_at, profile_type
+    // Build dynamic WHERE clause using sql.query() with proper parameter binding
+    const countQuery = `
+      SELECT COUNT(*) as total FROM investors.lemonway_account_requests 
+      WHERE ${whereClause}
+    `
+    const dataQuery = `
+      SELECT 
+        id, request_reference, status, validation_status, first_name, last_name, email,
+        lemonway_wallet_id, created_at, updated_at, submitted_at, kyc_1_completed_at,
+        kyc_2_completed_at, profile_type
       FROM investors.lemonway_account_requests 
       WHERE ${whereClause}
       ORDER BY ${sortColumn} ${order}
-      LIMIT ${limit} OFFSET ${offset}`
+      LIMIT ${limit} OFFSET ${offset}
+    `
+
+    // Execute queries with parameterized values
+    const countResult = await sql.query(countQuery, queryParams)
+    const total = countResult[0]?.total || 0
 
     const dataResult = await sql.query(dataQuery, queryParams)
 
