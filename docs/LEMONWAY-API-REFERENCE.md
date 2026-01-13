@@ -15,6 +15,7 @@
 11. [Manejo de Errores](#manejo-de-errores)
 12. [Ejemplos de Uso](#ejemplos-de-uso)
 13. [Troubleshooting](#troubleshooting)
+14. [ANEXO: CÓMO CREAR NUEVOS MÉTODOS PARA CONSULTAS EXTERNAS A LEMONWAY](#anexo-cómo-crear-nuevos-métodos-para-consultas-externas-a-lemonway)
 
 ---
 
@@ -37,7 +38,7 @@ Este documento proporciona una guía exhaustiva de la integración con la API RE
 
 ### Componentes del Sistema
 
-\`\`\`
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                    URBIX Application                         │
 ├─────────────────────────────────────────────────────────────┤
@@ -64,7 +65,7 @@ Este documento proporciona una guía exhaustiva de la integración con la API RE
                             │  Lemonway API v2  │
                             │  (REST/OAuth 2.0) │
                             └───────────────────┘
-\`\`\`
+```
 
 ### Flujo de una Petición
 
@@ -86,7 +87,7 @@ Este documento proporciona una guía exhaustiva de la integración con la API RE
 
 Almacena la configuración global de Lemonway en base de datos.
 
-\`\`\`sql
+```sql
 CREATE TABLE "LemonwayConfig" (
   id SERIAL PRIMARY KEY,
   environment TEXT NOT NULL,           -- 'sandbox' o 'production'
@@ -101,7 +102,7 @@ CREATE TABLE "LemonwayConfig" (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-\`\`\`
+```
 
 ### Variables de Entorno
 
@@ -109,7 +110,7 @@ El sistema NO requiere variables de entorno. Toda la configuración se gestiona 
 
 ### Obtener Configuración
 
-\`\`\`typescript
+```typescript
 const config = await LemonwayClient.getConfig();
 
 if (!config) {
@@ -117,7 +118,7 @@ if (!config) {
 }
 
 const client = new LemonwayClient(config);
-\`\`\`
+```
 
 ### URLs de API
 
@@ -139,35 +140,35 @@ Lemonway utiliza OAuth 2.0 con flujo de **Client Credentials**.
 
 #### 1. Obtener Token
 
-\`\`\`typescript
+```typescript
 async getBearerToken(): Promise<string>
-\`\`\`
+```
 
 **Request**:
-\`\`\`http
+```http
 POST /oauth/api/v1/oauth/token
 Authorization: Basic {api_token}
 Content-Type: application/x-www-form-urlencoded
 
 Grant_type=client_credentials
-\`\`\`
+```
 
 **Response**:
-\`\`\`json
+```json
 {
   "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "Bearer",
   "expires_in": 7776000  // 90 días en segundos
 }
-\`\`\`
+```
 
 #### 2. Uso del Token
 
 Todas las llamadas posteriores incluyen el token en el header:
 
-\`\`\`http
+```http
 Authorization: Bearer {access_token}
-\`\`\`
+```
 
 #### 3. Gestión de Tokens
 
@@ -177,13 +178,13 @@ Authorization: Bearer {access_token}
 
 **Ejemplo de uso**:
 
-\`\`\`typescript
+```typescript
 const config = await LemonwayClient.getConfig();
 const client = new LemonwayClient(config);
 
 // El token se obtiene automáticamente en la primera llamada
 const accounts = await client.getAccountDetails('WALLET123');
-\`\`\`
+```
 
 ---
 
@@ -195,12 +196,12 @@ El cliente implementa un sistema de colas para evitar sobrepasar los límites de
 
 #### Parámetros Configurables
 
-\`\`\`typescript
+```typescript
 interface LemonwayConfig {
   maxConcurrentRequests?: number;      // Default: 3
   minDelayBetweenRequestsMs?: number;  // Default: 1000ms
 }
-\`\`\`
+```
 
 #### Funcionamiento
 
@@ -211,7 +212,7 @@ interface LemonwayConfig {
 
 #### Ejemplo de Cola
 
-\`\`\`typescript
+```typescript
 // Múltiples llamadas se encolan automáticamente
 const results = await Promise.all([
   client.getAccountDetails('WALLET001'),
@@ -224,11 +225,11 @@ const results = await Promise.all([
 // Internamente se ejecutan con rate limiting:
 // - Máximo 3 simultáneas
 // - Mínimo 1 segundo entre cada una
-\`\`\`
+```
 
 #### Estadísticas de Cola
 
-\`\`\`typescript
+```typescript
 const stats = client.getQueueStats();
 console.log(stats);
 // {
@@ -236,7 +237,7 @@ console.log(stats);
 //   activeRequests: 3,   // Peticiones en ejecución
 //   isProcessing: true   // Procesador activo
 // }
-\`\`\`
+```
 
 ---
 
@@ -249,24 +250,24 @@ console.log(stats);
 Obtiene token OAuth 2.0 para autenticar peticiones.
 
 **Firma**:
-\`\`\`typescript
+```typescript
 async getBearerToken(): Promise<string>
-\`\`\`
+```
 
 **Ejemplo**:
-\`\`\`typescript
+```typescript
 const token = await client.getBearerToken();
 console.log('Token:', token);
-\`\`\`
+```
 
 **Respuesta**:
-\`\`\`json
+```json
 {
   "access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "Bearer",
   "expires_in": 7776000
 }
-\`\`\`
+```
 
 **Notas**:
 - El token se cachea automáticamente
@@ -282,12 +283,12 @@ console.log('Token:', token);
 Obtiene los detalles completos de una cuenta específica.
 
 **Firma**:
-\`\`\`typescript
+```typescript
 async getAccountDetails(
   accountId: string, 
   email?: string
 ): Promise<any>
-\`\`\`
+```
 
 **Parámetros**:
 - `accountId` (string, required): ID de la cuenta en Lemonway
@@ -296,7 +297,7 @@ async getAccountDetails(
 **Endpoint**: `POST /accounts/retrieve`
 
 **Request Body**:
-\`\`\`json
+```json
 {
   "accounts": [
     {
@@ -305,10 +306,10 @@ async getAccountDetails(
     }
   ]
 }
-\`\`\`
+```
 
 **Response**:
-\`\`\`json
+```json
 {
   "accounts": [
     {
@@ -334,16 +335,16 @@ async getAccountDetails(
     }
   ]
 }
-\`\`\`
+```
 
 **Ejemplo de Uso**:
-\`\`\`typescript
+```typescript
 const account = await client.getAccountDetails('WALLET123');
 
 console.log('Balance:', account.accounts[0].balance / 100, 'EUR');
 console.log('Status:', account.accounts[0].status);
 console.log('KYC Status:', account.accounts[0].kycStatus);
-\`\`\`
+```
 
 **Sincronización Automática**:
 - ✅ Los datos se sincronizan automáticamente en `payments.payment_accounts`
@@ -357,9 +358,9 @@ console.log('KYC Status:', account.accounts[0].kycStatus);
 Obtiene detalles de múltiples cuentas en una sola llamada.
 
 **Firma**:
-\`\`\`typescript
+```typescript
 async getAccountsByIds(accountIds: string[]): Promise<any>
-\`\`\`
+```
 
 **Parámetros**:
 - `accountIds` (string[], required): Array de IDs de cuentas
@@ -367,7 +368,7 @@ async getAccountsByIds(accountIds: string[]): Promise<any>
 **Endpoint**: `POST /accounts/retrieve`
 
 **Request Body**:
-\`\`\`json
+```json
 {
   "accounts": [
     { "accountid": "WALLET123", "email": "" },
@@ -375,10 +376,10 @@ async getAccountsByIds(accountIds: string[]): Promise<any>
     { "accountid": "WALLET789", "email": "" }
   ]
 }
-\`\`\`
+```
 
 **Response**:
-\`\`\`json
+```json
 {
   "accounts": [
     {
@@ -398,17 +399,17 @@ async getAccountsByIds(accountIds: string[]): Promise<any>
     }
   ]
 }
-\`\`\`
+```
 
 **Ejemplo de Uso**:
-\`\`\`typescript
+```typescript
 const accountIds = ['WALLET123', 'WALLET456', 'WALLET789'];
 const result = await client.getAccountsByIds(accountIds);
 
 result.accounts.forEach(account => {
   console.log(`${account.id}: ${account.balance / 100} EUR`);
 });
-\`\`\`
+```
 
 **Límites**:
 - Máximo recomendado: 50 cuentas por llamada
@@ -421,13 +422,13 @@ result.accounts.forEach(account => {
 Obtiene el estado KYC (Know Your Customer) de cuentas.
 
 **Firma**:
-\`\`\`typescript
+```typescript
 async getKycStatus(
   updateDate?: string,
   page?: number,
   limit?: number
 ): Promise<any>
-\`\`\`
+```
 
 **Parámetros**:
 - `updateDate` (string, optional): Fecha en formato ISO (YYYY-MM-DD)
@@ -437,12 +438,12 @@ async getKycStatus(
 **Endpoint**: `GET /accounts/kycstatus`
 
 **Query Parameters**:
-\`\`\`
+```
 ?updateDate=2024-01-01&page=1&limit=50
-\`\`\`
+```
 
 **Response**:
-\`\`\`json
+```json
 {
   "accounts": [
     {
@@ -465,7 +466,7 @@ async getKycStatus(
     "total": 150
   }
 }
-\`\`\`
+```
 
 **Estados KYC**:
 - `0`: Sin verificación
@@ -473,14 +474,14 @@ async getKycStatus(
 - `2`: Rechazado
 
 **Ejemplo de Uso**:
-\`\`\`typescript
+```typescript
 // Obtener cuentas actualizadas desde una fecha
 const kyc = await client.getKycStatus('2024-01-01', 1, 50);
 
 kyc.accounts.forEach(account => {
   console.log(`${account.accountId}: KYC Status = ${account.kycStatus}`);
 });
-\`\`\`
+```
 
 ---
 
@@ -491,13 +492,13 @@ kyc.accounts.forEach(account => {
 Lista las transacciones de una cuenta con filtros opcionales.
 
 **Firma**:
-\`\`\`typescript
+```typescript
 async getTransactions(
   walletId?: string,
   startDate?: string,
   endDate?: string
 ): Promise<any>
-\`\`\`
+```
 
 **Parámetros**:
 - `walletId` (string, optional): ID de la wallet
@@ -507,16 +508,16 @@ async getTransactions(
 **Endpoint**: `POST /transactions/list`
 
 **Request Body**:
-\`\`\`json
+```json
 {
   "wallet": "WALLET123",
   "startDate": "2024-01-01",
   "endDate": "2024-01-31"
 }
-\`\`\`
+```
 
 **Response**:
-\`\`\`json
+```json
 {
   "transactions": [
     {
@@ -549,7 +550,7 @@ async getTransactions(
     "limit": 50
   }
 }
-\`\`\`
+```
 
 **Tipos de Transacciones**:
 - `money_in`: Ingreso a la wallet
@@ -564,7 +565,7 @@ async getTransactions(
 - `cancelled`: Cancelada
 
 **Ejemplo de Uso**:
-\`\`\`typescript
+```typescript
 // Obtener transacciones del mes actual
 const now = new Date();
 const startDate = new Date(now.getFullYear(), now.getMonth(), 1)
@@ -578,7 +579,7 @@ console.log(`Total transacciones: ${result.transactions.length}`);
 result.transactions.forEach(txn => {
   console.log(`${txn.id}: ${txn.type} - ${txn.amount / 100} EUR`);
 });
-\`\`\`
+```
 
 ---
 
@@ -591,14 +592,14 @@ Envía un pago P2P entre wallets (actualmente no implementado).
 **Estado**: `is_enabled = false`
 
 **Firma**:
-\`\`\`typescript
+```typescript
 async sendPayment(data: any): Promise<any>
-\`\`\`
+```
 
 **Endpoint**: `POST /payments/send`
 
 **Request Body**:
-\`\`\`json
+```json
 {
   "debitWallet": "WALLET123",
   "creditWallet": "WALLET456",
@@ -606,7 +607,7 @@ async sendPayment(data: any): Promise<any>
   "currency": "EUR",
   "comment": "Payment for services"
 }
-\`\`\`
+```
 
 **Notas**:
 - ⚠️ Método deshabilitado en API Explorer
@@ -629,7 +630,7 @@ El sistema implementa un robusto mecanismo de reintentos automáticos con histor
 
 ### Flujo de Reintentos
 
-\`\`\`
+```
 ┌─────────────┐
 │ API Call    │
 │ (Failed)    │
@@ -667,22 +668,22 @@ El sistema implementa un robusto mecanismo de reintentos automáticos con histor
                            If retry_count >= max:
                              retry_status = 'failed'
                              final_failure = true
-\`\`\`
+```
 
 ### Configuración de Reintentos
 
-\`\`\`sql
+```sql
 SELECT * FROM "LemonwayRetryConfig" ORDER BY id DESC LIMIT 1;
-\`\`\`
+```
 
 **Valores Default**:
-\`\`\`json
+```json
 {
   "maxRetryAttempts": 3,
   "retryDelaySeconds": 5,
   "manualRetryEnabled": true
 }
-\`\`\`
+```
 
 ### Estados de Reintento
 
@@ -697,7 +698,7 @@ SELECT * FROM "LemonwayRetryConfig" ORDER BY id DESC LIMIT 1;
 
 ### Reintentar Manualmente
 
-\`\`\`typescript
+```typescript
 // API endpoint
 POST /api/lemonway/retry-failed-call
 {
@@ -714,13 +715,13 @@ console.log(result);
 //   message: "Reintento #2 exitoso",
 //   newLogId: 123
 // }
-\`\`\`
+```
 
 ### Historial de Reintentos
 
 Cada intento se guarda en `LemonwayApiCallRetryHistory`:
 
-\`\`\`sql
+```sql
 SELECT 
   attempt_number,
   response_status,
@@ -731,16 +732,16 @@ SELECT
 FROM "LemonwayApiCallRetryHistory"
 WHERE api_call_log_id = 123
 ORDER BY attempt_number;
-\`\`\`
+```
 
 **Ejemplo de Historial**:
-\`\`\`
+```
 attempt | status | success | error_message      | duration
 --------|--------|---------|--------------------|---------
    0    |  403   | false   | IP not whitelisted | 1250ms
    1    |  403   | false   | IP not whitelisted | 1180ms
    2    |  200   | true    | null               | 850ms
-\`\`\`
+```
 
 ---
 
@@ -752,7 +753,7 @@ Cada llamada a la API de Lemonway se registra con detalles completos.
 
 **Campos Principales**:
 
-\`\`\`sql
+```sql
 CREATE TABLE "LemonwayApiCallLog" (
   id SERIAL PRIMARY KEY,
   request_id TEXT,                  -- ID único para agrupar reintentos
@@ -773,12 +774,12 @@ CREATE TABLE "LemonwayApiCallLog" (
   sent_at TIMESTAMP,                -- Cuándo se envió
   created_at TIMESTAMP DEFAULT NOW()
 );
-\`\`\`
+```
 
 ### Consultar Logs
 
 **Logs recientes**:
-\`\`\`sql
+```sql
 SELECT 
   id,
   endpoint,
@@ -793,19 +794,19 @@ SELECT
 FROM "LemonwayApiCallLog"
 ORDER BY created_at DESC
 LIMIT 50;
-\`\`\`
+```
 
 **Logs fallidos**:
-\`\`\`sql
+```sql
 SELECT *
 FROM "LemonwayApiCallLog"
 WHERE success = false
   AND final_failure = false
 ORDER BY created_at DESC;
-\`\`\`
+```
 
 **Estadísticas**:
-\`\`\`sql
+```sql
 SELECT 
   endpoint,
   COUNT(*) as total_calls,
@@ -817,7 +818,7 @@ FROM "LemonwayApiCallLog"
 WHERE created_at >= NOW() - INTERVAL '7 days'
 GROUP BY endpoint
 ORDER BY total_calls DESC;
-\`\`\`
+```
 
 ---
 
@@ -885,13 +886,13 @@ Para cada método se muestra:
 
 **Activar/Desactivar Método**:
 
-\`\`\`typescript
+```typescript
 // API endpoint
 PUT /api/lemonway-api/methods/{methodId}
 {
   "is_enabled": false
 }
-\`\`\`
+```
 
 Cuando un método está desactivado:
 - ❌ No se puede ejecutar desde el código
@@ -900,12 +901,12 @@ Cuando un método está desactivado:
 
 **Uso desde código**:
 
-\`\`\`typescript
+```typescript
 // Internamente verifica si está habilitado
 const account = await client.getAccountDetails('WALLET123');
 // Si el método está deshabilitado, lanza:
 // Error: El método getAccountDetails está desactivado
-\`\`\`
+```
 
 ---
 
@@ -917,7 +918,7 @@ Cuando se llama exitosamente a `/accounts/retrieve`, los datos se sincronizan au
 
 #### Tabla `payment_accounts`
 
-\`\`\`sql
+```sql
 CREATE TABLE payments.payment_accounts (
   id SERIAL PRIMARY KEY,
   account_id TEXT UNIQUE NOT NULL,    -- ID de Lemonway
@@ -953,7 +954,7 @@ CREATE TABLE payments.payment_accounts (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-\`\`\`
+```
 
 #### Proceso de Sincronización
 
@@ -967,7 +968,7 @@ CREATE TABLE payments.payment_accounts (
 
 #### Verificar Sincronización
 
-\`\`\`sql
+```sql
 SELECT 
   account_id,
   email,
@@ -978,19 +979,19 @@ SELECT
 FROM payments.payment_accounts
 ORDER BY last_sync_at DESC
 LIMIT 10;
-\`\`\`
+```
 
 ### Sincronización Manual
 
 Desde el dashboard de Lemonway:
 
-\`\`\`
+```
 /dashboard/lemonway-transactions
 → Botón "Sincronizar Cuentas"
 → Ingresa IDs separados por comas
 → Se ejecuta getAccountsByIds()
 → Sincroniza automáticamente
-\`\`\`
+```
 
 ---
 
@@ -1009,7 +1010,7 @@ Desde el dashboard de Lemonway:
 ### Errores de Validación
 
 **Respuesta típica**:
-\`\`\`json
+```json
 {
   "error": {
     "code": "INVALID_PARAMETER",
@@ -1017,11 +1018,11 @@ Desde el dashboard de Lemonway:
     "field": "accountId"
   }
 }
-\`\`\`
+```
 
 ### Try-Catch Pattern
 
-\`\`\`typescript
+```typescript
 try {
   const account = await client.getAccountDetails('WALLET123');
   console.log('Account balance:', account.accounts[0].balance / 100);
@@ -1034,13 +1035,13 @@ try {
     console.error('Unexpected error:', error.message);
   }
 }
-\`\`\`
+```
 
 ### Logs de Error
 
 Todos los errores se registran automáticamente en `LemonwayApiCallLog`:
 
-\`\`\`sql
+```sql
 SELECT 
   endpoint,
   error_message,
@@ -1051,7 +1052,7 @@ FROM "LemonwayApiCallLog"
 WHERE success = false
 ORDER BY created_at DESC
 LIMIT 20;
-\`\`\`
+```
 
 ---
 
@@ -1059,7 +1060,7 @@ LIMIT 20;
 
 ### Ejemplo 1: Obtener Balance de una Cuenta
 
-\`\`\`typescript
+```typescript
 import { LemonwayClient } from '@/lib/lemonway-client';
 
 async function getAccountBalance(accountId: string) {
@@ -1095,11 +1096,11 @@ async function getAccountBalance(accountId: string) {
 // Uso
 const balance = await getAccountBalance('WALLET123');
 console.log(`Balance: ${balance.balance} EUR`);
-\`\`\`
+```
 
 ### Ejemplo 2: Sincronizar Múltiples Cuentas
 
-\`\`\`typescript
+```typescript
 import { LemonwayClient } from '@/lib/lemonway-client';
 
 async function syncMultipleAccounts(accountIds: string[]) {
@@ -1138,11 +1139,11 @@ async function syncMultipleAccounts(accountIds: string[]) {
 // Uso
 const accountIds = ['WALLET001', 'WALLET002', /* ... más IDs ... */];
 await syncMultipleAccounts(accountIds);
-\`\`\`
+```
 
 ### Ejemplo 3: Obtener Transacciones del Mes
 
-\`\`\`typescript
+```typescript
 import { LemonwayClient } from '@/lib/lemonway-client';
 
 async function getMonthlyTransactions(walletId: string, year: number, month: number) {
@@ -1194,11 +1195,11 @@ async function getMonthlyTransactions(walletId: string, year: number, month: num
 const result = await getMonthlyTransactions('WALLET123', 2024, 1);
 console.log('Summary:', result.summary);
 console.log('Transactions:', result.transactions);
-\`\`\`
+```
 
 ### Ejemplo 4: Verificar Estado KYC
 
-\`\`\`typescript
+```typescript
 import { LemonwayClient } from '@/lib/lemonway-client';
 
 async function checkKycCompliance(accountIds: string[]) {
@@ -1232,7 +1233,7 @@ const compliance = await checkKycCompliance(['WALLET123', 'WALLET456']);
 compliance.forEach(acc => {
   console.log(`${acc.accountId}: ${acc.isCompliant ? '✅ Compliant' : '❌ Not Compliant'}`);
 });
-\`\`\`
+```
 
 ---
 
@@ -1241,17 +1242,17 @@ compliance.forEach(acc => {
 ### Problema 1: Error 403 Forbidden
 
 **Síntoma**:
-\`\`\`
+```
 Error: fetch to https://sandbox-api.lemonway.fr/.../accounts/retrieve failed with status 403
-\`\`\`
+```
 
 **Causa**: La IP del servidor no está en la whitelist de Lemonway.
 
 **Solución**:
 1. Obtener la IP de salida del servidor:
-   \`\`\`bash
+   ```bash
    curl https://api.ipify.org
-   \`\`\`
+   ```
 
 2. Ir al dashboard de Lemonway
 3. Configuración → Seguridad → IP Whitelist
@@ -1261,56 +1262,56 @@ Error: fetch to https://sandbox-api.lemonway.fr/.../accounts/retrieve failed wit
 ### Problema 2: Error 429 Too Many Requests
 
 **Síntoma**:
-\`\`\`
+```
 Error: Rate limit exceeded - Too Many Requests
-\`\`\`
+```
 
 **Causa**: Demasiadas peticiones en corto tiempo.
 
 **Solución**:
 1. Verificar configuración de rate limiting:
-   \`\`\`sql
+   ```sql
    SELECT max_concurrent_requests, min_delay_between_requests_ms
    FROM "LemonwayConfig" ORDER BY id DESC LIMIT 1;
-   \`\`\`
+   ```
 
 2. Ajustar parámetros:
-   \`\`\`sql
+   ```sql
    UPDATE "LemonwayConfig"
    SET 
      max_concurrent_requests = 2,
      min_delay_between_requests_ms = 2000
    WHERE id = (SELECT id FROM "LemonwayConfig" ORDER BY id DESC LIMIT 1);
-   \`\`\`
+   ```
 
 3. Reiniciar aplicación para aplicar cambios
 
 ### Problema 3: Token Inválido
 
 **Síntoma**:
-\`\`\`
+```
 Error: OAuth failed: 401 - Invalid credentials
-\`\`\`
+```
 
 **Causa**: API Token incorrecto o mal formateado.
 
 **Solución**:
 1. Verificar token en base de datos:
-   \`\`\`sql
+   ```sql
    SELECT api_token FROM "LemonwayConfig" ORDER BY id DESC LIMIT 1;
-   \`\`\`
+   ```
 
 2. El token debe ser base64 de `{client_id}:{client_secret}`
-   \`\`\`bash
+   ```bash
    echo -n "YOUR_CLIENT_ID:YOUR_CLIENT_SECRET" | base64
-   \`\`\`
+   ```
 
 3. Actualizar token:
-   \`\`\`sql
+   ```sql
    UPDATE "LemonwayConfig"
    SET api_token = 'NEW_BASE64_TOKEN'
    WHERE id = (SELECT id FROM "LemonwayConfig" ORDER BY id DESC LIMIT 1);
-   \`\`\`
+   ```
 
 ### Problema 4: Sincronización No Funciona
 
@@ -1318,7 +1319,7 @@ Error: OAuth failed: 401 - Invalid credentials
 
 **Diagnóstico**:
 1. Verificar logs de sincronización:
-   \`\`\`sql
+   ```sql
    SELECT 
      endpoint,
      success,
@@ -1328,14 +1329,13 @@ Error: OAuth failed: 401 - Invalid credentials
    WHERE endpoint LIKE '%accounts/retrieve%'
    ORDER BY created_at DESC
    LIMIT 5;
-   \`\`\`
+   ```
 
-2. Verificar que `response_payload` contiene `accounts[]`
-
+2. Verificar que `responsePayload.accounts` es null → API no devolvió datos
 3. Revisar logs del servidor:
-   \`\`\`bash
+   ```bash
    grep "syncAccountFromResponse" /var/log/app.log
-   \`\`\`
+   ```
 
 **Soluciones**:
 - Si `responsePayload.accounts` es null → API no devolvió datos
@@ -1345,9 +1345,9 @@ Error: OAuth failed: 401 - Invalid credentials
 ### Problema 5: Método Deshabilitado
 
 **Síntoma**:
-\`\`\`
+```
 Error: El método getAccountDetails está desactivado
-\`\`\`
+```
 
 **Causa**: El método fue deshabilitado en el API Explorer.
 
@@ -1357,11 +1357,11 @@ Error: El método getAccountDetails está desactivado
 3. Click en el toggle para habilitarlo
 
 O vía SQL:
-\`\`\`sql
+```sql
 UPDATE lemonway_api_methods
 SET is_enabled = true
 WHERE name = 'getAccountDetails';
-\`\`\`
+```
 
 ---
 
@@ -1371,7 +1371,7 @@ WHERE name = 'getAccountDetails';
 
 #### Account Object
 
-\`\`\`typescript
+```typescript
 interface LemonwayAccount {
   id: string;                    // Wallet ID
   email: string;
@@ -1406,11 +1406,11 @@ interface LemonwayAccount {
   nationality: string;
   payerOrBeneficiary: number;
 }
-\`\`\`
+```
 
 #### Transaction Object
 
-\`\`\`typescript
+```typescript
 interface LemonwayTransaction {
   id: string;                    // Transaction ID
   date: string;                  // ISO 8601
@@ -1423,7 +1423,7 @@ interface LemonwayTransaction {
   comment: string;
   metadata: Record<string, any>;
 }
-\`\`\`
+```
 
 ### B. Estados de Cuenta
 
@@ -1483,3 +1483,488 @@ Lemonway puede enviar webhooks para eventos como:
 **Versión del Documento**: 1.0  
 **Última Actualización**: 2024  
 **Autor**: Sistema URBIX
+
+---
+
+## ANEXO: CÓMO CREAR NUEVOS MÉTODOS PARA CONSULTAS EXTERNAS A LEMONWAY
+
+### A. INTRODUCCIÓN: EXTENSIBILIDAD DEL SISTEMA
+
+El sistema Lemonway está diseñado para ser **completamente extensible**. Cualquier endpoint que Lemonway ofrezca puede ser agregado al sistema sin modificar el código base. El proceso es simple y se resume en 3 pasos:
+
+1. **Registrar el método en BD** - Almacenar definición del endpoint
+2. **Implementar el método en `LemonwayClient`** - Crear función que ejecute la llamada
+3. **Exponer en API o Dashboard** - Crear endpoint o agregar a UI
+
+---
+
+### B. PASO 1: REGISTRAR MÉTODO EN LA BD
+
+#### B.1 Estructura de la tabla `LemonwayApiMethod`
+
+```sql
+CREATE TABLE "LemonwayApiMethod" (
+  id VARCHAR(50) PRIMARY KEY,
+  name VARCHAR(255),
+  endpoint VARCHAR(500),          -- Ruta relativa en Lemonway API
+  http_method VARCHAR(10),        -- GET, POST, PUT, DELETE
+  description TEXT,               -- Documentación del método
+  category VARCHAR(50),           -- AUTH, ACCOUNTS, TRANSACTIONS, PAYMENTS, KYC, etc.
+  is_enabled BOOLEAN DEFAULT true,
+  request_schema JSONB,           -- JSON Schema de parámetros de entrada
+  response_schema JSONB,          -- JSON Schema de respuesta
+  example_request JSONB,          -- Ejemplo de request
+  example_response JSONB,         -- Ejemplo de response
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+```
+
+#### B.2 Insertar nuevo método
+
+**Ejemplo: Crear método para obtener transacciones por fecha**
+
+```sql
+INSERT INTO "LemonwayApiMethod" (
+  id,
+  name,
+  endpoint,
+  http_method,
+  description,
+  category,
+  is_enabled,
+  request_schema,
+  response_schema,
+  example_request,
+  example_response
+)
+VALUES (
+  'GetTransactionsByDateRange',
+  'Get Transactions by Date Range',
+  '/transactions/GetWalletTransactions',
+  'GET',
+  'Obtiene todas las transacciones de una wallet en un rango de fechas específico. Los timestamps deben estar en formato Unix (segundos desde 1970-01-01).',
+  'TRANSACTIONS',
+  true,
+  '{"type":"object","properties":{"startDate":{"type":"integer","description":"Unix timestamp inicial"},"endDate":{"type":"integer","description":"Unix timestamp final"}},"required":["startDate","endDate"]}',
+  '{"type":"object","properties":{"transactionIn":{"type":"array","items":{"type":"object","properties":{"id":{"type":"string"},"date":{"type":"integer"},"type":{"type":"string"},"amount":{"type":"integer"},"status":{"type":"string"}}}}}}',
+  '{"startDate":1704067200,"endDate":1704153600}',
+  '{"transactionIn":[{"id":"TXN001","date":1704067200,"type":"money_in","amount":10000,"status":"completed"}]}'
+);
+```
+
+---
+
+### C. PASO 2: IMPLEMENTAR MÉTODO EN `LemonwayClient`
+
+#### C.1 Estructura de un método
+
+Todos los métodos en `LemonwayClient` siguen este patrón:
+
+```typescript
+// lib/lemonway-client.ts
+
+async methodName(param1: string, param2?: number): Promise<any> {
+  // 1. Verificar si el método está habilitado
+  if (!(await this.isMethodEnabled('methodName'))) {
+    throw new Error('El método methodName está desactivado')
+  }
+
+  // 2. Construir request payload
+  const requestData = {
+    param1: param1,
+    param2: param2 || null
+  }
+
+  // 3. Enquenar (aplicar rate limiting)
+  return this.enqueueRequest(async () => {
+    // 4. Obtener token OAuth
+    const bearerToken = await this.getBearerToken()
+
+    // 5. Construir URL
+    const url = `${this.getApiBaseUrl()}/endpoint/path`
+
+    // 6. Ejecutar fetch
+    const response = await fetch(url, {
+      method: 'GET', // o POST, PUT, DELETE
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${bearerToken}`
+      },
+      body: method === 'POST' ? JSON.stringify(requestData) : undefined
+    })
+
+    // 7. Procesar respuesta
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`API Error: ${response.status} - ${error}`)
+    }
+
+    // 8. Log de auditoría
+    await this.logApiCall(
+      '/endpoint/path',
+      'GET',
+      requestData,
+      responseData,
+      response.status,
+      true,
+      null,
+      duration
+    )
+
+    return responseData
+  })
+}
+```
+
+#### C.2 Ejemplo completo: Método para obtener transacciones
+
+```typescript
+// lib/lemonway-client.ts - Agregar este método a la clase LemonwayClient
+
+async getTransactionsByDateRange(
+  startDate: Date,
+  endDate: Date
+): Promise<any> {
+  // 1. Verificar que el método está habilitado
+  if (!(await this.isMethodEnabled('GetTransactionsByDateRange'))) {
+    throw new Error('Método GetTransactionsByDateRange está deshabilitado')
+  }
+
+  // 2. Convertir fechas a Unix timestamps (segundos)
+  const startTimestamp = Math.floor(startDate.getTime() / 1000)
+  const endTimestamp = Math.floor(endDate.getTime() / 1000)
+
+  // 3. Enquenar para aplicar rate limiting
+  return this.enqueueRequest(async () => {
+    const startTime = Date.now()
+
+    // 4. Obtener token Bearer
+    const bearerToken = await this.getBearerToken()
+
+    // 5. Construir URL con query parameters
+    const url = new URL(`${this.getApiBaseUrl()}/transactions/GetWalletTransactions`)
+    url.searchParams.append('startDate', startTimestamp.toString())
+    url.searchParams.append('endDate', endTimestamp.toString())
+
+    console.log('[v0] [Lemonway] Calling:', url.toString())
+
+    // 6. Ejecutar request
+    const response = await fetch(url.toString(), {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${bearerToken}`,
+        'PSU-IP-Address': '1.1.1.1',
+        'PSU-User-Agent': 'URBIX App'
+      }
+    })
+
+    const responseData = await response.json()
+    const duration = Date.now() - startTime
+
+    // 7. Registrar en auditoría
+    await this.logApiCall(
+      '/transactions/GetWalletTransactions',
+      'GET',
+      { startDate: startTimestamp, endDate: endTimestamp },
+      responseData,
+      response.status,
+      response.ok,
+      response.ok ? null : responseData.error?.message,
+      duration
+    )
+
+    // 8. Lanzar error si falló
+    if (!response.ok) {
+      throw new Error(`Lemonway API Error: ${response.status}`)
+    }
+
+    return responseData
+  })
+}
+```
+
+---
+
+### D. PASO 3: EXPONER EN LA API O DASHBOARD
+
+#### D.1 Crear endpoint para el nuevo método
+
+**Opción 1: Endpoint directo (más rápido)**
+
+```typescript
+// app/api/lemonway/transactions/by-date-range/route.ts
+import { LemonwayClient } from '@/lib/lemonway-client'
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const startDateStr = searchParams.get('startDate')
+  const endDateStr = searchParams.get('endDate')
+
+  if (!startDateStr || !endDateStr) {
+    return Response.json(
+      { error: 'startDate y endDate son requeridos' },
+      { status: 400 }
+    )
+  }
+
+  const config = await LemonwayClient.getConfig()
+  if (!config) {
+    return Response.json(
+      { error: 'Lemonway no está configurado' },
+      { status: 500 }
+    )
+  }
+
+  const client = new LemonwayClient(config)
+  const startDate = new Date(startDateStr)
+  const endDate = new Date(endDateStr)
+
+  const result = await client.getTransactionsByDateRange(startDate, endDate)
+  return Response.json(result)
+}
+```
+
+**Opción 2: Agregar a Custom Queries en Dashboard (recomendado)**
+
+En el dashboard OPCIÓN 2, el usuario puede crear "Custom Queries" combinando métodos existentes:
+
+```
+Tab: "Queries"
+  ├── Nombre: "Transacciones de Enero"
+  ├── Método: "GetTransactionsByDateRange"
+  ├── Parámetros:
+  │   ├── startDate: 2024-01-01
+  │   └── endDate: 2024-01-31
+  └── Botón "Ejecutar"
+```
+
+Esto se guarda en `lemonway_temp.lemonway_custom_queries` y se puede reutilizar.
+
+---
+
+### E. CASO DE USO COMPLETO: AGREGAR MÉTODO "OBTENER SALDO"
+
+#### E.1 Documentación de Lemonway
+
+Según la API de Lemonway, existe un endpoint:
+```
+GET /wallets/{walletId}/balance
+```
+
+Retorna:
+```json
+{
+  "walletId": "WALLET123",
+  "balance": 250000,      // En centavos (2500.00 EUR)
+  "currency": "EUR",
+  "lastUpdated": "2024-01-15T10:00:00Z"
+}
+```
+
+#### E.2 Registrar en BD
+
+```sql
+INSERT INTO "LemonwayApiMethod" (
+  id, name, endpoint, http_method, description, category, is_enabled,
+  request_schema, response_schema, example_request, example_response
+)
+VALUES (
+  'GetWalletBalance',
+  'Get Wallet Balance',
+  '/wallets/{walletId}/balance',
+  'GET',
+  'Obtiene el saldo actual de una wallet específica',
+  'PAYMENTS',
+  true,
+  '{"type":"object","properties":{"walletId":{"type":"string"}},"required":["walletId"]}',
+  '{"type":"object","properties":{"walletId":{"type":"string"},"balance":{"type":"integer"},"currency":{"type":"string"}}}',
+  '{"walletId":"WALLET123"}',
+  '{"walletId":"WALLET123","balance":250000,"currency":"EUR"}'
+);
+```
+
+#### E.3 Implementar en LemonwayClient
+
+```typescript
+// lib/lemonway-client.ts
+
+async getWalletBalance(walletId: string): Promise<any> {
+  if (!(await this.isMethodEnabled('GetWalletBalance'))) {
+    throw new Error('GetWalletBalance está deshabilitado')
+  }
+
+  return this.enqueueRequest(async () => {
+    const startTime = Date.now()
+    const bearerToken = await this.getBearerToken()
+    
+    const endpoint = `/wallets/${walletId}/balance`
+    const url = `${this.getApiBaseUrl()}${endpoint}`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${bearerToken}`
+      }
+    })
+
+    const responseData = await response.json()
+    const duration = Date.now() - startTime
+
+    await this.logApiCall(
+      endpoint,
+      'GET',
+      { walletId },
+      responseData,
+      response.status,
+      response.ok,
+      response.ok ? null : responseData.error?.message,
+      duration
+    )
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`)
+    }
+
+    return responseData
+  })
+}
+```
+
+#### E.4 Usar desde dashboard o API
+
+```typescript
+// app/api/lemonway/wallets/balance/route.ts
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+  const walletId = searchParams.get('walletId')
+
+  if (!walletId) {
+    return Response.json({ error: 'walletId es requerido' }, { status: 400 })
+  }
+
+  const config = await LemonwayClient.getConfig()
+  const client = new LemonwayClient(config)
+  
+  const balance = await client.getWalletBalance(walletId)
+  return Response.json({
+    walletId: balance.walletId,
+    balanceEur: balance.balance / 100,  // Convertir centavos a EUR
+    currency: balance.currency,
+    timestamp: new Date().toISOString()
+  })
+}
+```
+
+---
+
+### F. CHECKLIST: ANTES DE IMPLEMENTAR UN NUEVO MÉTODO
+
+- [ ] **Documentación de Lemonway**: Encontré el endpoint exacto y su especificación
+- [ ] **Método registrado en BD**: El método está en `LemonwayApiMethod` con schema completo
+- [ ] **Implementado en LemonwayClient**: Existe una función `async methodName()`
+- [ ] **Rate limiting**: El método usa `this.enqueueRequest()`
+- [ ] **Autenticación**: Obtiene Bearer token con `this.getBearerToken()`
+- [ ] **Auditoría**: Registra en `LemonwayApiCallLog` con `this.logApiCall()`
+- [ ] **Manejo de errores**: Incluye try/catch y mensajes claros
+- [ ] **Logging de debug**: Usa `console.log('[v0]')` para troubleshooting
+- [ ] **Endpoint o Custom Query**: Expuesto en API o agregado al dashboard
+- [ ] **Tests**: Probado en API Explorer o dashboard OPCIÓN 2
+
+---
+
+### G. TROUBLESHOOTING: ERRORES COMUNES
+
+#### G.1 "El método está deshabilitado"
+
+**Causa**: `is_enabled = false` en `LemonwayApiMethod`
+
+**Solución**:
+```sql
+UPDATE "LemonwayApiMethod" 
+SET is_enabled = true 
+WHERE id = 'GetWalletBalance';
+```
+
+#### G.2 "OAuth failed: 401"
+
+**Causa**: Token API inválido o expirado en `LemonwayConfig`
+
+**Solución**:
+```sql
+SELECT api_token FROM "LemonwayConfig" LIMIT 1;
+-- Actualizar con nuevo token
+UPDATE "LemonwayConfig" SET api_token = 'new_base64_token';
+```
+
+#### G.3 "404 - Endpoint not found"
+
+**Causa**: Ruta incorrecta o `walletId` mal formateado
+
+**Solución**:
+- Verificar en Lemonway docs la ruta exacta
+- Asegurarse de reemplazar placeholders como `{walletId}`
+- Logguear URL generada: `console.log('[v0] URL:', url)`
+
+#### G.4 "Rate limit exceeded (429)"
+
+**Causa**: Excedidos los límites de Lemonway (típicamente 100 req/min)
+
+**Solución**:
+- Aumentar `min_delay_between_requests_ms` en `LemonwayConfig`
+- Reducir `maxConcurrentRequests`
+- Usar reintentos automáticos (configurado por defecto)
+
+---
+
+### H. EJEMPLO DE FLUJO COMPLETO: DE IDEA A PRODUCCIÓN
+
+```
+1. Gerente dice: "Necesitamos ver saldos de wallets en tiempo real"
+
+2. Developer:
+   a) Lee docs de Lemonway → encuentra endpoint /wallets/{id}/balance
+   b) Registra en BD: INSERT INTO LemonwayApiMethod ...
+   c) Implementa: async getWalletBalance() en LemonwayClient
+   d) Crea endpoint: /api/lemonway/wallets/balance?walletId=X
+   
+3. QA:
+   a) Prueba en API Explorer
+   b) Verifica logs en LemonwayApiCallLog
+   c) Comprueba auditoría completa
+   
+4. Productor:
+   a) Deploy a producción
+   b) Actualiza documentación
+   c) Capacita a usuarios en dashboard
+```
+
+---
+
+### I. DOCUMENTACIÓN MÍNIMA REQUERIDA
+
+Cada método nuevo debe incluir en su registro BD:
+
+```json
+{
+  "description": "Breve explicación de qué hace",
+  "request_schema": {
+    "type": "object",
+    "properties": {
+      "param1": {"type": "string", "description": "..."},
+      "param2": {"type": "integer", "description": "..."}
+    },
+    "required": ["param1"]
+  },
+  "example_request": {"param1": "value1", "param2": 123},
+  "example_response": {"result": "...", "status": "success"}
+}
+```
+
+---
+
+**FIN DEL ANEXO**

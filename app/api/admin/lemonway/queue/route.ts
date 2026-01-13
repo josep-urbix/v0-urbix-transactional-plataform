@@ -44,8 +44,9 @@ export async function GET(request: NextRequest) {
 
     const query = `
       SELECT 
-        id, priority, queue_position, endpoint, http_method,
-        wallet_id, account_id, operation_type, status,
+        ROW_NUMBER() OVER (ORDER BY CASE WHEN priority = 'URGENT' THEN 0 ELSE 1 END, created_at) as queue_position,
+        id, priority, endpoint, http_method,
+        wallet_id, account_id, operation_type_id, status,
         retry_count, max_retries, next_retry_at,
         error_message, sandbox_mode,
         created_at, started_at, completed_at
