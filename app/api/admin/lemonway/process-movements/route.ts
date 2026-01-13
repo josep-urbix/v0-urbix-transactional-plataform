@@ -1,5 +1,5 @@
 import { LemonwayProcessingWorker } from "@/lib/workers/lemonway-processing-worker"
-import { requireAuth } from "@/lib/auth/session"
+import { requireAuth } from "@/lib/auth"
 
 export async function POST(req: Request) {
   try {

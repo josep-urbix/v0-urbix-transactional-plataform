@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { LemonwayClient } from "@/lib/lemonway-client"
-import { requireAdmin } from "@/lib/auth/middleware"
+import { requireAdmin } from "@/lib/auth"
 
 export async function GET(request: NextRequest) {
   try {
