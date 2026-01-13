@@ -3,7 +3,7 @@
  * Trazabilidad: Especificación Sección 3 - FASE 2
  */
 
-import { sql } from "@neon/serverless"
+import { sql } from "@neondatabase/serverless"
 
 export interface KYCStatus {
   requestId: string

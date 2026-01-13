@@ -1,10 +1,9 @@
-import { neon } from "@neondatabase/serverless"
+import { sql } from "@/lib/db"
 import { getServerSession } from "next-auth"
 import { NextResponse } from "next/server"
 import { LemonwayClient } from "@/lib/lemonway-client"
 
-const sql = neon(process.env.DATABASE_URL)
-const lemonwayClient = new LemonwayClient()
+const lemonwayClient = new LemonwayClient() // Declare the lemonwayClient variable
 
 export async function POST(req) {
   try {
@@ -22,9 +21,8 @@ export async function POST(req) {
     // Get the draft request
     const result = await sql`
       SELECT * FROM investors.lemonway_account_requests
-      WHERE id = $1 AND deleted_at IS NULL
-    `,
-      [requestId]
+      WHERE id = ${requestId} AND deleted_at IS NULL
+    `
 
     if (!result || result.length === 0) {
       return NextResponse.json({ error: "Request not found" }, { status: 404 })
@@ -39,12 +37,11 @@ export async function POST(req) {
 
     // Get country ISO2 codes
     const birthCountry = await sql`
-      SELECT code_iso2 FROM investors.countries WHERE id = $1
-    \`, [account.birth_country_id]
+      SELECT code_iso2 FROM investors.countries WHERE id = ${account.birth_country_id}
+    `
 
-    const residenceCountry = account.country_id 
-      ? await sql\`SELECT code_iso2 FROM investors.countries WHERE id = $1`.then((res) => res[0]?.code_iso2 || null)
-    \
+    const residenceCountry = account.country_id
+      ? await sql`SELECT code_iso2 FROM investors.countries WHERE id = ${account.country_id}`
       : null
 
     // Build Lemonway payload
@@ -58,7 +55,7 @@ export async function POST(req) {
       street: account.street,
       city: account.city,
       postalCode: account.postal_code,
-      country: residenceCountry?.code_iso2 || null,
+      country: residenceCountry?.[0]?.code_iso2 || null,
       profileType: account.profile_type,
     }
 
@@ -72,11 +69,10 @@ export async function POST(req) {
         SET 
           status = 'SUBMITTED',
           submitted_at = NOW(),
-          lemonway_error_message = $1,
+          lemonway_error_message = ${lemonwayResponse.error},
           updated_at = NOW()
-        WHERE id = $2
-      `,
-        [lemonwayResponse.error, requestId]
+        WHERE id = ${requestId}
+      `
 
       return NextResponse.json({
         success: false,
@@ -91,11 +87,10 @@ export async function POST(req) {
       SET 
         status = 'SUBMITTED',
         submitted_at = NOW(),
-        lemonway_wallet_id = $1,
+        lemonway_wallet_id = ${lemonwayResponse.walletId},
         updated_at = NOW()
-      WHERE id = $2
-    `,
-      [lemonwayResponse.walletId, requestId]
+      WHERE id = ${requestId}
+    `
 
     return NextResponse.json({
       success: true,

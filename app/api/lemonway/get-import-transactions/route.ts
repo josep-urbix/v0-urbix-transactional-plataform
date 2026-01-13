@@ -1,13 +1,6 @@
-import { neon } from "@neondatabase/serverless"
+import { sql } from "@/lib/db"
 import { LemonwayClient } from "@/lib/lemonway-client"
 
-const sql = neon(process.env.DATABASE_URL!)
-
-/**
- * This endpoint is called by the retry queue to fetch transactions from Lemonway
- * It gets the import run details and fetches transactions from Lemonway
- * Then it enqueues each transaction as a separate log for processing
- */
 export async function POST(request: Request) {
   try {
     const body = await request.json()

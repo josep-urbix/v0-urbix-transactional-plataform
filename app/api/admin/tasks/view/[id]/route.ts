@@ -1,7 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { neon } from "@neondatabase/serverless"
-
-// Ubicado en /api/admin/tasks/view/[id] para evitar conflictos con rutas estáticas como /stats y /types
+import { sql } from "@/lib/db"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -18,17 +16,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "ID de tarea inválido. Debe ser un UUID válido." }, { status: 400 })
     }
 
-    const sql = neon(process.env.DATABASE_URL!)
-
-    const result = await sql.query(
-      `SELECT 
+    const result = await sql`
+      SELECT 
         id, tipo, proceso, prioridad, estado, 
         titulo, descripcion, creado_por, fecha_creacion,
         asignado_a, cuenta_virtual_id, payment_account_id, contexto, fecha_vencimiento
       FROM tasks.tasks
-      WHERE id = $1::uuid`,
-      [id],
-    )
+      WHERE id = ${id}::uuid
+    `
 
     const rows = Array.isArray(result) ? result : result?.rows || []
 
@@ -59,21 +54,18 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ error: "ID de tarea inválido." }, { status: 400 })
     }
 
-    const sql = neon(process.env.DATABASE_URL!)
+    const result = await sql`
+      UPDATE tasks.tasks 
+      SET estado = ${body.estado}, prioridad = ${body.prioridad}, descripcion = ${body.descripcion}
+      WHERE id = ${id}::uuid
+      RETURNING *
+    `
 
-    const result = await sql.query(
-      `UPDATE tasks.tasks 
-      SET estado = $1, prioridad = $2, descripcion = $3
-      WHERE id = $4::uuid
-      RETURNING *`,
-      [body.estado, body.prioridad, body.descripcion, id],
-    )
-
-    if (!result?.rows?.[0]) {
+    if (!result?.[0]) {
       return NextResponse.json({ error: "Tarea no encontrada." }, { status: 404 })
     }
 
-    return NextResponse.json({ task: result.rows[0] })
+    return NextResponse.json({ task: result[0] })
   } catch (error) {
     console.error("[v0] Error updating task:", error)
     return NextResponse.json({ error: "Error al actualizar la tarea" }, { status: 500 })
@@ -90,9 +82,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       return NextResponse.json({ error: "ID de tarea inválido." }, { status: 400 })
     }
 
-    const sql = neon(process.env.DATABASE_URL!)
-
-    await sql.query("DELETE FROM tasks.tasks WHERE id = $1::uuid", [id])
+    await sql`DELETE FROM tasks.tasks WHERE id = ${id}::uuid`
 
     return NextResponse.json({ success: true })
   } catch (error) {

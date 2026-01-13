@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server"
 import { processLemonwayImports } from "@/lib/workers/lemonway-import-worker"
-import { neon } from "@neondatabase/serverless"
+import { sql } from "@/lib/db"
 
 export async function POST(request: Request) {
   console.log("[v0] Process imports endpoint called")
 
-  const sql = neon(process.env.DATABASE_URL!)
   const logId = `log-${Date.now()}`
 
   try {

@@ -7,7 +7,7 @@
  */
 
 import { getSession, requirePermission } from "@/lib/auth"
-import { sql } from "@neon/serverless"
+import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function PUT(request: NextRequest, { params }: { params: { requestId: string } }) {
