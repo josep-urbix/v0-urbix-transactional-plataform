@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { sql } from "@/lib/db"
-import { requireAdmin } from "@/lib/auth"
+import { requireAdmin } from "@/lib/auth/middleware"
 
 export async function GET(request: NextRequest) {
   try {
