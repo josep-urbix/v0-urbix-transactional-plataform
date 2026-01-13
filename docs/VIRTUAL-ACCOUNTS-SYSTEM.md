@@ -32,7 +32,7 @@ El Sistema de Cuentas Virtuales es el núcleo contable de la plataforma URBIX. G
 
 ## 2. Arquitectura del Sistema
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────┐
 │                        CAPA DE PRESENTACIÓN                      │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
@@ -74,7 +74,7 @@ El Sistema de Cuentas Virtuales es el núcleo contable de la plataforma URBIX. G
 │  │  • P2P Transfer        • KYC Status • Webhooks              │ │
 │  └─────────────────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ### Componentes Clave
 
@@ -243,7 +243,7 @@ Cuentas de pago sincronizadas desde Lemonway.
 
 ### Flujo de Saldos
 
-```
+\`\`\`
 INGRESO_EXTERNO (€1000)
 ├── saldo_disponible: 0 → 1000 (+1000)
 └── saldo_bloqueado: 0 → 0 (sin cambio)
@@ -259,7 +259,7 @@ EJECUCION_INVERSION_INVERSOR (€500)
 Estado Final:
 ├── saldo_disponible: 500
 └── saldo_bloqueado: 0
-```
+\`\`\`
 
 ---
 
@@ -267,7 +267,7 @@ Estado Final:
 
 ### 5.1 Crear Movimiento (Transaccional)
 
-```typescript
+\`\`\`typescript
 // POST /api/admin/virtual-accounts/accounts/[accountId]/movements
 
 async function createMovement(accountId, body) {
@@ -351,11 +351,11 @@ async function createMovement(accountId, body) {
   
   return movimiento
 }
-```
+\`\`\`
 
 ### 5.2 Flujo de Inversión Completo
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────┐
 │                    INVERSOR REALIZA INVERSIÓN                    │
 └─────────────────────────────────────────────────────────────────┘
@@ -400,11 +400,11 @@ async function createMovement(accountId, body) {
 │    • saldo_disponible:    │
 │      +€1000 (en proyecto) │
 └───────────────────────────┘
-```
+\`\`\`
 
 ### 5.3 Sincronización con Lemonway
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────┐
 │                    POST /api/payment-accounts/sync               │
 └─────────────────────────────────────────────────────────────────┘
@@ -438,7 +438,7 @@ async function createMovement(accountId, body) {
 │    • request_payload, response_payload                          │
 │    • duration_ms, success                                       │
 └─────────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -458,7 +458,7 @@ Lista todas las cuentas virtuales con filtros.
 | `search` | string | Búsqueda por ID o referencia externa |
 
 **Response:**
-```json
+\`\`\`json
 {
   "accounts": [
     {
@@ -474,14 +474,14 @@ Lista todas las cuentas virtuales con filtros.
     }
   ]
 }
-```
+\`\`\`
 
 #### GET `/api/admin/virtual-accounts/accounts/[accountId]`
 
 Obtiene detalle de una cuenta específica.
 
 **Response:**
-```json
+\`\`\`json
 {
   "id": "uuid",
   "tipo": "INVERSOR",
@@ -494,7 +494,7 @@ Obtiene detalle de una cuenta específica.
     "name": "John Doe"
   }
 }
-```
+\`\`\`
 
 #### GET `/api/admin/virtual-accounts/accounts/[accountId]/movements`
 
@@ -508,7 +508,7 @@ Lista movimientos de una cuenta.
 | `movement_type` | string | Filtrar por tipo de movimiento |
 
 **Response:**
-```json
+\`\`\`json
 {
   "movements": [
     {
@@ -529,14 +529,14 @@ Lista movimientos de una cuenta.
     "hasMore": false
   }
 }
-```
+\`\`\`
 
 #### POST `/api/admin/virtual-accounts/accounts/[accountId]/movements`
 
 Crea un nuevo movimiento.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "operation_type_code": "INGRESO_EXTERNO",
   "amount": 1000.00,
@@ -544,10 +544,10 @@ Crea un nuevo movimiento.
   "description": "Transferencia bancaria recibida",
   "lemonway_transaction_id": "LW-123456"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "movement": {
@@ -556,7 +556,7 @@ Crea un nuevo movimiento.
     "balance_after": 2500.00
   }
 }
-```
+\`\`\`
 
 ### 6.2 Tipos de Operación
 
@@ -565,7 +565,7 @@ Crea un nuevo movimiento.
 Lista todos los tipos de operación activos.
 
 **Response:**
-```json
+\`\`\`json
 [
   {
     "id": "uuid",
@@ -580,21 +580,21 @@ Lista todos los tipos de operación activos.
     "requiere_aprobacion": false
   }
 ]
-```
+\`\`\`
 
 #### POST `/api/admin/virtual-accounts/operation-types`
 
 Crea un nuevo tipo de operación.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "code": "DIVIDENDO",
   "name": "Pago de Dividendo",
   "direction": "+",
   "description": "Pago de dividendos a inversores"
 }
-```
+\`\`\`
 
 ### 6.3 Payment Accounts (Lemonway)
 
@@ -613,7 +613,7 @@ Lista cuentas de pago sincronizadas con estadísticas.
 | `offset` | number | Paginación |
 
 **Response:**
-```json
+\`\`\`json
 {
   "accounts": [...],
   "stats": {
@@ -634,18 +634,18 @@ Lista cuentas de pago sincronizadas con estadísticas.
     }
   }
 }
-```
+\`\`\`
 
 #### POST `/api/payment-accounts/sync`
 
 Sincroniza todas las cuentas desde Lemonway.
 
 **Request Body:**
-```json
+\`\`\`json
 {
   "force": true  // Opcional: forzar re-sincronización completa
 }
-```
+\`\`\`
 
 ---
 
@@ -675,7 +675,7 @@ Los webhooks de Lemonway se procesan en `/api/admin/lemonway/webhooks`:
 
 ### 7.3 Sistema de Reintentos
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────┐
 │                    SISTEMA DE REINTENTOS                         │
 ├─────────────────────────────────────────────────────────────────┤
@@ -694,7 +694,7 @@ Los webhooks de Lemonway se procesan en `/api/admin/lemonway/webhooks`:
 │ Máximo reintentos: 5                                            │
 │ Si falla: manual_retry_needed = true                            │
 └─────────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -704,12 +704,12 @@ Los webhooks de Lemonway se procesan en `/api/admin/lemonway/webhooks`:
 
 Todas las APIs requieren autenticación via sesión HTTP-only cookie:
 
-```typescript
+\`\`\`typescript
 const session = await getSession()
 if (!session?.userId) {
   return NextResponse.json({ error: "No autorizado" }, { status: 401 })
 }
-```
+\`\`\`
 
 ### 8.2 Permisos RBAC
 
@@ -726,7 +726,7 @@ if (!session?.userId) {
 
 ### 8.3 Verificación de Permisos
 
-```typescript
+\`\`\`typescript
 import { getSession, requireAdmin } from '@/lib/auth'
 
 export async function GET(request: Request) {
@@ -746,7 +746,7 @@ export async function GET(request: Request) {
   
   // Lógica de la API...
 }
-```
+\`\`\`
 
 ### 8.4 Roles del Sistema
 
@@ -764,7 +764,7 @@ export async function GET(request: Request) {
 
 Registra todos los intentos de acceso (permitidos y denegados):
 
-```sql
+\`\`\`sql
 CREATE TABLE "AccessLog" (
   id UUID PRIMARY KEY,
   "userId" TEXT,
@@ -781,13 +781,13 @@ CREATE TABLE "AccessLog" (
   metadata JSONB,
   "createdAt" TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 ### 9.2 Tabla LemonwayTransaction
 
 Registra todas las operaciones relacionadas con movimientos:
 
-```sql
+\`\`\`sql
 INSERT INTO "LemonwayTransaction" (
   operation,        -- 'VIRTUAL_ACCOUNT_MOVEMENT'
   data,            -- JSON con detalles del movimiento
@@ -795,14 +795,14 @@ INSERT INTO "LemonwayTransaction" (
   response,        -- Resultado de la operación
   status           -- 'completed', 'failed', 'pending'
 );
-```
+\`\`\`
 
 ### 9.3 Consulta de Logs
 
-```
+\`\`\`
 GET /dashboard/access-logs
 GET /api/admin/access-logs?resource=virtual_accounts&allowed=false
-```
+\`\`\`
 
 ---
 
@@ -810,7 +810,7 @@ GET /api/admin/access-logs?resource=virtual_accounts&allowed=false
 
 ### 10.1 Validaciones de Base de Datos
 
-```sql
+\`\`\`sql
 -- CHECK constraints
 CHECK (importe > 0)  -- Importes siempre positivos
 CHECK (signo_saldo_disponible IN ('+', '-', '0'))
@@ -821,7 +821,7 @@ CHECK (direction IN ('IN', 'OUT', 'INTERNAL'))
 UNIQUE (tipo, referencia_externa_tipo, referencia_externa_id, moneda)
 UNIQUE (idempotency_key) WHERE idempotency_key IS NOT NULL
 UNIQUE (ext_id)  -- ID externo de Lemonway
-```
+\`\`\`
 
 ### 10.2 Validaciones de Negocio
 
@@ -837,7 +837,7 @@ UNIQUE (ext_id)  -- ID externo de Lemonway
 
 Todas las operaciones críticas usan transacciones ACID:
 
-```sql
+\`\`\`sql
 -- Lock exclusivo para evitar race conditions
 SELECT * FROM virtual_accounts.cuentas_virtuales
 WHERE id = $1
@@ -848,11 +848,11 @@ BEGIN;
   INSERT INTO movimientos_cuenta (...);
   UPDATE cuentas_virtuales SET saldo_disponible = ...;
 COMMIT;
-```
+\`\`\`
 
 ### 10.4 Idempotencia
 
-```typescript
+\`\`\`typescript
 // Verificar si ya existe movimiento con misma idempotency_key
 if (body.idempotency_key) {
   const [existing] = await sql`
@@ -864,7 +864,7 @@ if (body.idempotency_key) {
     return existing
   }
 }
-```
+\`\`\`
 
 ---
 

@@ -13,7 +13,7 @@ Lemonway es el proveedor de pagos europeo integrado en URBIX que proporciona:
 
 ### 1.2 Modelo de Negocio
 
-```
+\`\`\`
 INVERSOR                          LEMONWAY                       URBIX PLATFORM
 ┌──────────────┐              ┌──────────────┐              ┌──────────────┐
 │   Wallet     │ ◄────────────│   Backend    │──────────────► Virtual Acct  │
@@ -24,7 +24,7 @@ INVERSOR                          LEMONWAY                       URBIX PLATFORM
      │ KYC/Documentos               │ Sincronización             │ Movimientos
      │ Balance                      │ Eventos                    │ Auditoría
      │                              │                            │
-```
+\`\`\`
 
 ---
 
@@ -35,7 +35,7 @@ INVERSOR                          LEMONWAY                       URBIX PLATFORM
 #### **Capa 1: Autenticación (OAuth 2.0)**
 
 **Flujo:**
-```
+\`\`\`
 1. Request Token
    POST /oauth/api/v1/oauth/token
    Authorization: Basic (base64(client_id:client_secret))
@@ -49,7 +49,7 @@ INVERSOR                          LEMONWAY                       URBIX PLATFORM
 
 3. Token guardado en: public.LemonwayConfig.api_token
 4. Reutilizado hasta su expiración
-```
+\`\`\`
 
 **Archivos clave:**
 - `lib/lemonway-client.ts` (líneas 1-100): Gestión de OAuth
@@ -59,7 +59,7 @@ INVERSOR                          LEMONWAY                       URBIX PLATFORM
 
 **Sistema de Cola Inteligente:**
 
-```typescript
+\`\`\`typescript
 // Cola de peticiones con control de concurrencia
 LemonwayClient {
   maxConcurrentRequests: 3
@@ -67,7 +67,7 @@ LemonwayClient {
   requestQueue: PriorityQueue
   activeRequests: Map<id, Promise>
 }
-```
+\`\`\`
 
 **Algoritmo de procesamiento:**
 1. Verifica slots disponibles (< 3 activas)
@@ -82,7 +82,7 @@ LemonwayClient {
 
 **Tabla: `LemonwayApiCallLog`**
 
-```
+\`\`\`
 Estado del Reintento:
 ┌─────────────────────────────────────┐
 │         Initial Request             │
@@ -102,10 +102,10 @@ Estado del Reintento:
                 └─ Intento 4: +8s ──► Fail ──► max_retries
                                     │
                                     └─► manual_retry_needed = true
-```
+\`\`\`
 
 **Configuración:**
-```json
+\`\`\`json
 {
   "maxRetryAttempts": 3,
   "retryDelaySeconds": [1, 2, 4, 8, 16, 32],
@@ -113,7 +113,7 @@ Estado del Reintento:
   "retryableStatuses": [408, 429, 500, 502, 503, 504],
   "nonRetryableStatuses": [400, 401, 403, 404]
 }
-```
+\`\`\`
 
 **Archivos clave:**
 - `lib/lemonway-client.ts` (líneas 250-400): Implementación de reintentos
@@ -130,16 +130,16 @@ Estado del Reintento:
 **Propósito:** Obtener detalles completos de cuentas con KYC status
 
 **Request:**
-```json
+\`\`\`json
 {
   "updateDate": "2024-01-01T00:00:00Z",
   "page": 1,
   "limit": 50
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "accounts": [
     {
@@ -171,7 +171,7 @@ Estado del Reintento:
     "total": 250
   }
 }
-```
+\`\`\`
 
 **Status Codes de Lemonway:**
 - `1-3`: KYC Incompleto
@@ -186,7 +186,7 @@ Estado del Reintento:
 - `2`: Rechazado
 
 **Implementación:**
-```typescript
+\`\`\`typescript
 // lib/lemonway-client.ts líneas 330-380
 const accounts = await client.getAccounts({
   updateDate: "2024-01-01",
@@ -197,7 +197,7 @@ const accounts = await client.getAccounts({
 // 1. Sincroniza a payments.payment_accounts
 // 2. Mapea todos los campos
 // 3. Guarda raw_data completo en JSONB
-```
+\`\`\`
 
 ### 3.2 KYC Status
 
@@ -206,7 +206,7 @@ const accounts = await client.getAccounts({
 **Propósito:** Obtener estado KYC de múltiples cuentas
 
 **Response:**
-```json
+\`\`\`json
 {
   "accounts": [
     {
@@ -222,7 +222,7 @@ const accounts = await client.getAccounts({
     }
   ]
 }
-```
+\`\`\`
 
 ### 3.3 Transacciones
 
@@ -231,14 +231,14 @@ const accounts = await client.getAccounts({
 **Propósito:** Importar transacciones de una wallet
 
 **Parameters:**
-```
+\`\`\`
 startDate: Unix timestamp
 endDate: Unix timestamp
 importRunId: ID de la importación (interno)
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "transactionIn": [
     {
@@ -262,7 +262,7 @@ importRunId: ID de la importación (interno)
     }
   ]
 }
-```
+\`\`\`
 
 ---
 
@@ -272,7 +272,7 @@ importRunId: ID de la importación (interno)
 
 **Flujo:**
 
-```
+\`\`\`
 Lemonway                    URBIX Backend                   Procesamiento
 ┌──────────────┐            ┌──────────────┐               ┌──────────────┐
 │  Evento      │──POST──────│  /webhooks/  │──ENQUEUE──────│   Worker     │
@@ -285,7 +285,7 @@ Lemonway                    URBIX Backend                   Procesamiento
                                   ├─ Return 200 immediately
                                   │
                                   └─ Fire-and-forget ──────► Procesamiento
-```
+\`\`\`
 
 **Endpoint:** `POST /api/webhooks/lemonway`
 
@@ -313,7 +313,7 @@ Lemonway                    URBIX Backend                   Procesamiento
 
 ### 4.3 Flujo de Procesamiento de Webhook
 
-```
+\`\`\`
 1. RECEIVED
    ├─ Webhook llega a POST /api/webhooks/lemonway
    ├─ Extrae headers raw
@@ -334,11 +334,11 @@ Lemonway                    URBIX Backend                   Procesamiento
    ├─ Success: status = PROCESSED
    ├─ Fail: status = FAILED, retry_count++
    └─ Almacena error_message
-```
+\`\`\`
 
 ### 4.4 Ejemplo: Manejo de WALLET_STATUS_CHANGE
 
-```typescript
+\`\`\`typescript
 // lib/lemonway-webhook/handlers.ts líneas 49-97
 
 export async function handleWalletStatusChange(
@@ -366,7 +366,7 @@ export async function handleWalletStatusChange(
   
   return { success: true, message: "..." }
 }
-```
+\`\`\`
 
 ---
 
@@ -374,7 +374,7 @@ export async function handleWalletStatusChange(
 
 ### 5.1 Arquitectura General
 
-```
+\`\`\`
 Admin inicia import                 Lemonway Import System
 ┌──────────────────┐               ┌──────────────────┐
 │ Dashboard        │               │ Cron Job         │
@@ -393,24 +393,24 @@ Admin inicia import                 Lemonway Import System
                                             ├─(5)─► Mapea tipos operación
                                             ├─(6)─► Insert en lemonway_temp.movimientos_cuenta
                                             └─(7)─► Update import_runs (completed)
-```
+\`\`\`
 
 ### 5.2 Estados del Import Run
 
-```
+\`\`\`
 pending ──► processing ──► completed
    │            │              │
    │            └─► failed      │
    │                            │
    └──────────► partial ◄───────┘
    (algunos éxito, algunos fracaso)
-```
+\`\`\`
 
 ### 5.3 Tablas Involucradas
 
 #### **lemonway_temp.import_runs**
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway_temp.import_runs (
   id TEXT PRIMARY KEY,
   status TEXT (pending|processing|completed|failed|partial),
@@ -435,11 +435,11 @@ CREATE TABLE lemonway_temp.import_runs (
   started_at TIMESTAMP,
   completed_at TIMESTAMP
 )
-```
+\`\`\`
 
 #### **lemonway_temp.movimientos_cuenta**
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway_temp.movimientos_cuenta (
   id TEXT PRIMARY KEY,
   
@@ -468,13 +468,13 @@ CREATE TABLE lemonway_temp.movimientos_cuenta (
   
   created_at TIMESTAMP
 )
-```
+\`\`\`
 
 ### 5.4 Flujo Paso a Paso
 
 **Fase 1: Iniciar Import (Admin)**
 
-```typescript
+\`\`\`typescript
 // POST /api/lemonway/imports/start
 {
   "cuenta_virtual_id": "uuid-...",
@@ -485,11 +485,11 @@ CREATE TABLE lemonway_temp.movimientos_cuenta (
 // Sistema:
 // 1. Crea registro en import_runs (status: pending)
 // 2. Retorna importRunId
-```
+\`\`\`
 
 **Fase 2: Procesar Pending (Cron cada 5 min)**
 
-```typescript
+\`\`\`typescript
 // POST /api/cron/process-lemonway-imports
 
 // Flujo:
@@ -499,11 +499,11 @@ CREATE TABLE lemonway_temp.movimientos_cuenta (
 //    - Llama LemonwayImportWorker.processImportRun(runId)
 //    - Worker encola en LemonwayApiCallLog
 //    - Retorna control inmediatamente
-```
+\`\`\`
 
 **Fase 3: Ejecutar Llamada API**
 
-```typescript
+\`\`\`typescript
 // LemonwayApiCallLog: retry_status = "pending"
 // => Cron procesa cola cada 30s
 // => Llama GET /accounts/{accountId}/transactions/
@@ -520,11 +520,11 @@ CREATE TABLE lemonway_temp.movimientos_cuenta (
     ...
   ]
 }
-```
+\`\`\`
 
 **Fase 4: Mapear e Insertar**
 
-```typescript
+\`\`\`typescript
 // Para cada transacción:
 // 1. Mapea tipo_operacion (CREDIT_IN, DEBIT_OUT, etc.)
 // 2. Mapea cuenta_virtual_id desde Lemonway account_id
@@ -538,11 +538,11 @@ CREATE TABLE lemonway_temp.movimientos_cuenta (
 //    - status: "completed"
 //    - imported_transactions: 2
 //    - completed_at: NOW()
-```
+\`\`\`
 
 **Fase 5: Revisar y Aprobar (Admin)**
 
-```
+\`\`\`
 Dashboard /dashboard/lemonway/temp-movimientos
 ├─ Ver lista de importaciones por revisar
 ├─ Filtrar por import_run, estado, fecha
@@ -551,11 +551,11 @@ Dashboard /dashboard/lemonway/temp-movimientos
 │  ├─ Cambiar estado: APPROVED/REJECTED
 │  └─ Opcional: añadir nota
 └─ Update estado_revision = "approved"
-```
+\`\`\`
 
 **Fase 6: Aplicar Movimientos (Cron cada 10 min)**
 
-```typescript
+\`\`\`typescript
 // POST /api/cron/process-approved-movements
 
 // Flujo:
@@ -567,7 +567,7 @@ Dashboard /dashboard/lemonway/temp-movimientos
 //    - Update balance en cuentas_virtuales
 //    - Mark como procesado: true
 //    - Trigger: movement.approved ─► notificación inversor
-```
+\`\`\`
 
 ---
 
@@ -592,7 +592,7 @@ Dashboard /dashboard/lemonway/temp-movimientos
 | *(todo)* | `raw_data` | JSON.stringify() |
 
 **Implementación:**
-```typescript
+\`\`\`typescript
 // lib/lemonway-client.ts líneas 500-580
 
 // Después de GET /accounts/retrieve
@@ -624,7 +624,7 @@ await sql`
     raw_data = EXCLUDED.raw_data,
     last_sync_at = NOW()
 `
-```
+\`\`\`
 
 ### 6.2 Triggers de Sincronización
 
@@ -639,7 +639,7 @@ await sql`
 
 ### 7.1 Estados de Reintento
 
-```
+\`\`\`
 ┌─ Éxito (200) ──────────────► retry_status = "none"
 │
 Initial Request
@@ -662,20 +662,20 @@ Initial Request
       └─ final_failure = true
       └─ manual_retry_needed = true
       └─ retry_status = "failed"
-```
+\`\`\`
 
 ### 7.2 Estados No-Retentable
 
-```
+\`\`\`
 ├─ 400 (Bad Request) ────► ERROR en lógica (NO reintentar)
 ├─ 401 (Unauthorized) ──► ERROR en token (NO reintentar)
 ├─ 403 (Forbidden) ─────► ERROR en permisos (NO reintentar)
 └─ 404 (Not Found) ─────► ERROR en endpoint (NO reintentar)
-```
+\`\`\`
 
 ### 7.3 Tabla de Histórico de Reintentos
 
-```
+\`\`\`
 LemonwayApiCallRetryHistory
 
 Para cada reintento:
@@ -687,7 +687,7 @@ Para cada reintento:
 ├─ error_message: "Connection timeout"
 ├─ response_payload: {...}
 └─ created_at: timestamp del intento
-```
+\`\`\`
 
 ---
 
@@ -695,16 +695,16 @@ Para cada reintento:
 
 ### 8.1 Configuración
 
-```sql
+\`\`\`sql
 SELECT * FROM LemonwayConfig
 -- Campos:
 -- - max_concurrent_requests: 3 (máx 3 solicitudes paralelas)
 -- - min_delay_between_requests_ms: 1000 (esperar 1s entre requests)
-```
+\`\`\`
 
 ### 8.2 Algoritmo de Cola
 
-```typescript
+\`\`\`typescript
 class LemonwayClient {
   private maxConcurrent = 3
   private minDelay = 1000  // ms
@@ -739,13 +739,13 @@ class LemonwayClient {
     }
   }
 }
-```
+\`\`\`
 
 ### 8.3 Estadísticas de Cola
 
 **Endpoint:** `GET /api/lemonway/queue-stats`
 
-```json
+\`\`\`json
 {
   "queue_length": 12,
   "active_requests": 2,
@@ -756,7 +756,7 @@ class LemonwayClient {
   "retry_attempts_today": 47,
   "last_request": "2024-01-15T14:32:10Z"
 }
-```
+\`\`\`
 
 ---
 
@@ -764,7 +764,7 @@ class LemonwayClient {
 
 ### 9.1 Flujo Completo: Inversor Realiza Inversión
 
-```
+\`\`\`
 INVERSOR                    URBIX                       LEMONWAY
 ┌──────────────┐            ┌──────────────┐            ┌──────────────┐
 │ 1. Register  │────────────│ Create User  │────Auth────│ Create Account│
@@ -815,11 +815,11 @@ INVERSOR                    URBIX                       LEMONWAY
     │                                  EUR 1,000
     │
     └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ### 9.2 Flujo: Retiro de Fondos (Money-Out)
 
-```
+\`\`\`
 URBIX                       LEMONWAY                    BANCO
 ┌──────────────┐            ┌──────────────┐            ┌──────────────┐
 │ 1. Inversor  │────────────│ Create       │────────────│ Initiate     │
@@ -838,7 +838,7 @@ URBIX                       LEMONWAY                    BANCO
        │    aprueba retiro             6. Handler: Retiro completado  banco del
        │                               Update movimiento_cuenta        inversor
        └─────────────────────────────────────────────────────────►
-```
+\`\`\`
 
 ---
 
@@ -867,14 +867,14 @@ URBIX                       LEMONWAY                    BANCO
 
 ### 10.3 Alertas Configurables
 
-```typescript
+\`\`\`typescript
 Alertas:
 ├─ Queue length > 100 ──────────► Contactar soporte
 ├─ Failed requests > 10/h ──────► Revisar errores API
 ├─ Webhook delivery failure ────► Reintentar manualmente
 ├─ Manual retry needed ─────────► Admin acción requerida
 └─ KYC status cambios ──────────► Notificar inversor
-```
+\`\`\`
 
 ---
 
@@ -889,7 +889,7 @@ Alertas:
 
 ### 11.2 Validación de Webhooks
 
-```typescript
+\`\`\`typescript
 // Validar firma (si Lemonway lo proporciona)
 const signature = request.headers['x-lemonway-signature']
 const computed = hmac('sha256', WEBHOOK_SECRET, bodyText)
@@ -900,7 +900,7 @@ if (signature !== computed) {
     { status: 403 }
   )
 }
-```
+\`\`\`
 
 ### 11.3 Auditoría Completa
 
@@ -925,7 +925,7 @@ if (signature !== computed) {
 
 ### 12.2 Debugging
 
-```typescript
+\`\`\`typescript
 // Explorador de API
 POST /api/lemonway/test-api
 {
@@ -945,7 +945,7 @@ GET /api/lemonway/queue-stats
 
 // Reintentar webhook manualmente
 POST /api/admin/lemonway/webhooks/[id]/reprocess
-```
+\`\`\`
 
 ---
 

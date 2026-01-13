@@ -167,7 +167,7 @@ Esta tabla muestra el mapeo entre los campos que devuelve el API de Lemonway al 
 
 ## Ejemplo de Respuesta API para Cuenta
 
-```json
+\`\`\`json
 {
   "id": "154",
   "email": "user154@example.com",
@@ -202,7 +202,7 @@ Esta tabla muestra el mapeo entre los campos que devuelve el API de Lemonway al 
     "identificationNumber": ""
   }
 }
-```
+\`\`\`
 
 ## Notas Importantes
 

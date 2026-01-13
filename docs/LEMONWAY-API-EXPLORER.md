@@ -98,7 +98,7 @@ Lista todos los métodos disponibles con filtros opcionales.
 - `search` - Buscar en nombre o descripción
 
 **Response:**
-```json
+\`\`\`json
 {
   "methods": [
     {
@@ -110,33 +110,33 @@ Lista todos los métodos disponibles con filtros opcionales.
     }
   ]
 }
-```
+\`\`\`
 
 #### PATCH /api/lemonway-api/methods/[methodId]
 Activa o desactiva un método.
 
 **Body:**
-```json
+\`\`\`json
 {
   "is_enabled": false
 }
-```
+\`\`\`
 
 #### POST /api/lemonway-api/test
 Ejecuta una llamada de prueba.
 
 **Body:**
-```json
+\`\`\`json
 {
   "method_id": "uuid",
   "parameters": {
     "accountId": "12345"
   }
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "data": { ... },
@@ -144,7 +144,7 @@ Ejecuta una llamada de prueba.
   "status_code": 200,
   "history_id": "uuid"
 }
-```
+\`\`\`
 
 #### GET /api/lemonway-api/history
 Obtiene el historial de llamadas con filtros y paginación.
@@ -159,14 +159,14 @@ Obtiene el historial de llamadas con filtros y paginación.
 Crea un nuevo preset.
 
 **Body:**
-```json
+\`\`\`json
 {
   "method_id": "uuid",
   "name": "Test con cuenta demo",
   "description": "Parámetros para testing",
   "parameters": { ... }
 }
-```
+\`\`\`
 
 #### DELETE /api/lemonway-api/presets/[presetId]
 Elimina un preset del usuario.
@@ -175,11 +175,11 @@ Elimina un preset del usuario.
 
 En `lib/lemonway-client.ts`, cada método verifica si está habilitado antes de ejecutar:
 
-```typescript
+\`\`\`typescript
 if (!methodEnabled) {
   throw new Error(`Método ${methodName} está desactivado`)
 }
-```
+\`\`\`
 
 ## Uso
 

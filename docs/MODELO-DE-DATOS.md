@@ -79,7 +79,7 @@ La base de datos está organizada en **12 schemas principales**:
 - `lemonway_field_mappings` - Mapeo de campos Lemonway a modelo interno
 
 **Campos principales de `payment_accounts`:**
-```sql
+\`\`\`sql
 - id: integer (PK)
 - account_id: varchar (ID externo)
 - internal_id: integer (ID interno Lemonway)
@@ -97,7 +97,7 @@ La base de datos está organizada en **12 schemas principales**:
 - metadata: jsonb
 - raw_data: jsonb (respuesta completa Lemonway)
 - last_sync_at: timestamp
-```
+\`\`\`
 
 ---
 
@@ -117,7 +117,7 @@ La base de datos está organizada en **12 schemas principales**:
 - `Settings` - Configuración OAuth Google para inversores
 
 **Campos principales de `investors.User`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - email: varchar (unique)
 - password_hash: varchar
@@ -135,10 +135,10 @@ La base de datos está organizada en **12 schemas principales**:
 - two_factor_method, two_factor_secret: varchar
 - last_login_at: timestamp
 - created_at, updated_at, deleted_at: timestamp
-```
+\`\`\`
 
 **Campos principales de `investors.Session`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - user_id: uuid (FK → investors.User)
 - token: varchar
@@ -152,7 +152,7 @@ La base de datos está organizada en **12 schemas principales**:
 - is_active: boolean
 - last_activity_at: timestamp
 - created_at: timestamp
-```
+\`\`\`
 
 **Vista materializada:**
 - `user_stats` - Estadísticas agregadas de usuarios
@@ -172,7 +172,7 @@ La base de datos está organizada en **12 schemas principales**:
 - `WorkflowEvent` - Catálogo de eventos disponibles
 
 **Estructura de `Workflow`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - name: varchar
 - description: text
@@ -181,10 +181,10 @@ La base de datos está organizada en **12 schemas principales**:
 - entry_step_key: varchar (primer paso)
 - canvas_data: jsonb (posición visual de nodos)
 - created_at, updated_at: timestamp
-```
+\`\`\`
 
 **Estructura de `WorkflowStep`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - workflow_id: uuid (FK → Workflow)
 - step_key: varchar (identificador único en el workflow)
@@ -197,10 +197,10 @@ La base de datos está organizada en **12 schemas principales**:
 - max_retries: integer
 - retry_delay_ms: integer
 - retry_backoff_multiplier: numeric
-```
+\`\`\`
 
 **Estructura de `WorkflowRun`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - workflow_id: uuid (FK → Workflow)
 - trigger_event_name: varchar
@@ -210,7 +210,7 @@ La base de datos está organizada en **12 schemas principales**:
 - context: jsonb (variables compartidas entre pasos)
 - started_at, finished_at, resume_at: timestamp
 - error_message, error_stack: text
-```
+\`\`\`
 
 ---
 
@@ -224,7 +224,7 @@ La base de datos está organizada en **12 schemas principales**:
 - `email_config` - Configuración SMTP/Gmail
 
 **Estructura de `email_templates`:**
-```sql
+\`\`\`sql
 - id: integer (PK)
 - slug: varchar (unique, identificador)
 - name: varchar
@@ -237,10 +237,10 @@ La base de datos está organizada en **12 schemas principales**:
 - is_active: boolean
 - created_by, updated_by: varchar
 - created_at, updated_at: timestamp
-```
+\`\`\`
 
 **Estructura de `email_sends`:**
-```sql
+\`\`\`sql
 - id: integer (PK)
 - template_id: integer (FK → email_templates)
 - template_slug: varchar
@@ -258,7 +258,7 @@ La base de datos está organizada en **12 schemas principales**:
 - metadata: jsonb
 - created_by: varchar
 - created_at: timestamp
-```
+\`\`\`
 
 ---
 
@@ -273,14 +273,14 @@ La base de datos está organizada en **12 schemas principales**:
 - `BlockingReasonCode` - Códigos de razones de bloqueo
 
 **ENUM Types:**
-```sql
+\`\`\`sql
 - event_type: KYC_UPDATE, MONEY_IN_WIRE, MONEY_IN_CARD, MONEY_OUT, 
   WALLET_STATUS_CHANGE, IBAN_CHANGE, DOCUMENT_UPLOADED, etc.
 - processing_status: pending, processing, processed, failed
-```
+\`\`\`
 
 **Estructura de `WebhookDelivery`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - notif_category: integer (código Lemonway)
 - event_type: event_type (enum)
@@ -297,7 +297,7 @@ La base de datos está organizada en **12 schemas principales**:
 - received_at: timestamp (cuándo llegó)
 - processed_at: timestamp (cuándo se procesó)
 - created_at, updated_at: timestamp
-```
+\`\`\`
 
 **Vista materializada:**
 - `WebhookStats` - Estadísticas de webhooks
@@ -314,7 +314,7 @@ La base de datos está organizada en **12 schemas principales**:
 - `movimientos_cuenta` - Movimientos/transacciones de cuentas
 
 **Estructura de `cuentas_virtuales`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - nombre_cuenta: varchar
 - saldo_actual: numeric (default 0.00)
@@ -323,10 +323,10 @@ La base de datos está organizada en **12 schemas principales**:
 - lemonway_wallet_id: varchar (FK opcional → lemonway.wallets)
 - metadatos: jsonb
 - fecha_creacion, fecha_actualizacion: timestamp
-```
+\`\`\`
 
 **Estructura de `tipos_operacion_contable`:**
-```sql
+\`\`\`sql
 - id: integer (PK)
 - codigo: varchar (unique, ej: DEPOSIT, WITHDRAWAL)
 - nombre: varchar
@@ -338,10 +338,10 @@ La base de datos está organizada en **12 schemas principales**:
 - orden_display: integer
 - metadatos: jsonb
 - created_at, updated_at: timestamp
-```
+\`\`\`
 
 **Estructura de `movimientos_cuenta`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - cuenta_virtual_id: uuid (FK → cuentas_virtuales)
 - tipo_operacion_id: integer (FK → tipos_operacion_contable)
@@ -356,7 +356,7 @@ La base de datos está organizada en **12 schemas principales**:
 - fecha_operacion: timestamp
 - procesado_por: varchar (user que procesó)
 - created_at: timestamp
-```
+\`\`\`
 
 ---
 
@@ -373,7 +373,7 @@ La base de datos está organizada en **12 schemas principales**:
 - `status_codes` - Catálogo de códigos de estado
 
 **Estructura de `lemonway.wallets`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - lemonway_id: varchar (unique, ID interno Lemonway)
 - external_id: varchar (unique, ID externo)
@@ -393,10 +393,10 @@ La base de datos está organizada en **12 schemas principales**:
 - metadata: jsonb
 - last_synced_at: timestamp
 - created_at, updated_at: timestamp
-```
+\`\`\`
 
 **Estructura de `lemonway.transactions`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - lemonway_transaction_id: varchar (unique)
 - wallet_id: uuid (FK → lemonway.wallets)
@@ -411,7 +411,7 @@ La base de datos está organizada en **12 schemas principales**:
 - metadata: jsonb
 - executed_at: timestamp
 - created_at, updated_at: timestamp
-```
+\`\`\`
 
 ---
 
@@ -427,12 +427,12 @@ La base de datos está organizada en **12 schemas principales**:
 - `signature_verification` - CSV de verificación de firmas
 
 **ENUM Types:**
-```sql
+\`\`\`sql
 - firma_channel: desktop, mobile, qr_mobile
-```
+\`\`\`
 
 **Estructura de `document_type`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - name: varchar (unique, código identificador)
 - display_name: varchar (nombre visible)
@@ -441,10 +441,10 @@ La base de datos está organizada en **12 schemas principales**:
 - obligatorio_antes_invertir: boolean
 - dias_vigencia: integer
 - created_by, created_at, updated_at: varchar/timestamp
-```
+\`\`\`
 
 **Estructura de `document_version`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - document_type_id: uuid (FK → document_type)
 - version_number: varchar
@@ -454,10 +454,10 @@ La base de datos está organizada en **12 schemas principales**:
 - status: varchar (borrador/publicado)
 - publicado_en, publicado_por: timestamp/varchar
 - created_by, created_at, updated_at: varchar/timestamp
-```
+\`\`\`
 
 **Estructura de `signature_session`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - inversor_id: uuid (FK → investors.User)
 - document_version_id: uuid (FK → document_version)
@@ -469,10 +469,10 @@ La base de datos está organizada en **12 schemas principales**:
 - ip_firma, user_agent: varchar/text
 - otp_code, otp_expires_at, otp_attempts: varchar/timestamp/integer
 - firmado_en, created_at, updated_at: timestamp
-```
+\`\`\`
 
 **Estructura de `signed_document`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - signature_session_id: uuid (FK → signature_session)
 - inversor_id: uuid (FK → investors.User)
@@ -484,15 +484,15 @@ La base de datos está organizada en **12 schemas principales**:
 - firma_valida: boolean
 - fecha_firma, fecha_expiracion: timestamp
 - created_at: timestamp
-```
+\`\`\`
 
 **Estructura de `signature_verification`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - signed_document_id: uuid (FK → signed_document)
 - verificacion_csv: text
 - created_at: timestamp
-```
+\`\`\`
 
 ---
 
@@ -505,7 +505,7 @@ La base de datos está organizada en **12 schemas principales**:
 - `proyecto_update` - Actualizaciones/novedades de proyectos
 
 **Estructura de `proyecto`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - nombre: varchar
 - descripcion: text
@@ -517,10 +517,10 @@ La base de datos está organizada en **12 schemas principales**:
 - plazo_meses: integer
 - metadatos: jsonb
 - created_at, updated_at: timestamp
-```
+\`\`\`
 
 **Estructura de `proyecto_update`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - proyecto_id: uuid (FK → proyecto)
 - titulo: varchar
@@ -530,7 +530,7 @@ La base de datos está organizada en **12 schemas principales**:
 - fecha_publicacion: timestamp
 - created_by: varchar
 - created_at: timestamp
-```
+\`\`\`
 
 ---
 
@@ -543,7 +543,7 @@ La base de datos está organizada en **12 schemas principales**:
 - `inversion_status_history` - Historial de cambios de estado
 
 **Estructura de `inversion`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - inversor_id: uuid (FK → investors.User)
 - proyecto_id: uuid (FK → proyectos.proyecto)
@@ -552,10 +552,10 @@ La base de datos está organizada en **12 schemas principales**:
 - fecha_inversion: timestamp
 - metadatos: jsonb
 - created_at, updated_at: timestamp
-```
+\`\`\`
 
 **Estructura de `inversion_status_history`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - inversion_id: uuid (FK → inversion)
 - estado_anterior: varchar
@@ -563,7 +563,7 @@ La base de datos está organizada en **12 schemas principales**:
 - motivo: text
 - cambiado_por: varchar
 - changed_at: timestamp
-```
+\`\`\`
 
 ---
 
@@ -581,7 +581,7 @@ La base de datos está organizada en **12 schemas principales**:
 - `task_escalations` - Reglas de escalamiento automático
 
 **Estructura de `tasks`:**
-```sql
+\`\`\`sql
 - id: uuid (PK)
 - title: varchar
 - description: text
@@ -598,7 +598,7 @@ La base de datos está organizada en **12 schemas principales**:
 - tags: text[]
 - metadatos: jsonb
 - created_at, updated_at, completed_at: timestamp
-```
+\`\`\`
 
 **Particionado:**
 - Una partición por mes para optimizar queries
@@ -611,7 +611,7 @@ La base de datos está organizada en **12 schemas principales**:
 
 ### Relaciones Principales
 
-```
+\`\`\`
 public.User (Admin)
   ├─→ public.UserAuditLog (1:N) - cambios del usuario
   ├─→ public.AccessLog (1:N) - auditoría de accesos (NUEVO)
@@ -643,7 +643,7 @@ tasks.tasks
   ├─→ tasks.task_templates (N:1 opcional) - template origen
   ├─→ lemonway.wallets (N:1 opcional) - wallet relacionado
   └─→ tasks.task_escalations (1:N) - escalamientos
-```
+\`\`\`
 
 ---
 
@@ -651,7 +651,7 @@ tasks.tasks
 
 ### Diagrama de Alto Nivel
 
-```
+\`\`\`
 ┌─────────────────┐
 │  public schema  │ ← Middleware Admin + RBAC + SMS
 │   (Admin Core)  │
@@ -732,7 +732,7 @@ tasks.tasks
 │ tasks schema             │ ← Sistema de Tareas
 │  (Task Management+SLA)   │   con SLA y Escalamiento
 └──────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -741,7 +741,7 @@ tasks.tasks
 ### Índices Principales
 
 #### Schema: `public`
-```sql
+\`\`\`sql
 -- User
 CREATE UNIQUE INDEX idx_user_email ON "User"(email);
 CREATE INDEX idx_user_role ON "User"(role);
@@ -762,10 +762,10 @@ CREATE INDEX idx_lemonway_transaction_wallet_id ON "LemonwayTransaction"(wallet_
 CREATE INDEX idx_lemonway_transaction_type ON "LemonwayTransaction"(type);
 CREATE INDEX idx_lemonway_transaction_status ON "LemonwayTransaction"(status);
 CREATE INDEX idx_lemonway_transaction_created_at ON "LemonwayTransaction"(created_at);
-```
+\`\`\`
 
 #### Schema: `investors`
-```sql
+\`\`\`sql
 -- User
 CREATE UNIQUE INDEX idx_investors_user_email ON investors."User"(email);
 CREATE INDEX idx_investors_user_google_id ON investors."User"(google_id);
@@ -782,20 +782,20 @@ CREATE INDEX idx_investors_session_is_active ON investors."Session"(is_active);
 CREATE INDEX idx_wallet_link_user_id ON investors."WalletLink"(user_id);
 CREATE INDEX idx_wallet_link_wallet_id ON investors."WalletLink"(wallet_id);
 CREATE INDEX idx_wallet_link_status ON investors."WalletLink"(status);
-```
+\`\`\`
 
 #### Schema: `payments`
-```sql
+\`\`\`sql
 -- payment_accounts
 CREATE UNIQUE INDEX idx_payment_accounts_account_id ON payments.payment_accounts(account_id);
 CREATE INDEX idx_payment_accounts_email ON payments.payment_accounts(email);
 CREATE INDEX idx_payment_accounts_status ON payments.payment_accounts(status);
 CREATE INDEX idx_payment_accounts_kyc_status ON payments.payment_accounts(kyc_status);
 CREATE INDEX idx_payment_accounts_internal_id ON payments.payment_accounts(internal_id);
-```
+\`\`\`
 
 #### Schema: `workflows`
-```sql
+\`\`\`sql
 -- Workflow
 CREATE INDEX idx_workflow_status ON workflows."Workflow"(status);
 
@@ -808,10 +808,10 @@ CREATE INDEX idx_workflow_run_started_at ON workflows."WorkflowRun"(started_at);
 -- WorkflowStepRun
 CREATE INDEX idx_workflow_step_run_workflow_run_id ON workflows."WorkflowStepRun"(workflow_run_id);
 CREATE INDEX idx_workflow_step_run_status ON workflows."WorkflowStepRun"(status);
-```
+\`\`\`
 
 #### Schema: `emails`
-```sql
+\`\`\`sql
 -- email_templates
 CREATE UNIQUE INDEX idx_email_templates_slug ON emails.email_templates(slug);
 CREATE INDEX idx_email_templates_is_active ON emails.email_templates(is_active);
@@ -822,20 +822,20 @@ CREATE INDEX idx_email_sends_to_email ON emails.email_sends(to_email);
 CREATE INDEX idx_email_sends_status ON emails.email_sends(status);
 CREATE INDEX idx_email_sends_created_at ON emails.email_sends(created_at);
 CREATE INDEX idx_email_sends_sent_at ON emails.email_sends(sent_at);
-```
+\`\`\`
 
 #### Schema: `lemonway_webhooks`
-```sql
+\`\`\`sql
 -- WebhookDelivery
 CREATE INDEX idx_webhook_delivery_notif_category ON lemonway_webhooks."WebhookDelivery"(notif_category);
 CREATE INDEX idx_webhook_delivery_event_type ON lemonway_webhooks."WebhookDelivery"(event_type);
 CREATE INDEX idx_webhook_delivery_wallet_int_id ON lemonway_webhooks."WebhookDelivery"(wallet_int_id);
 CREATE INDEX idx_webhook_delivery_processing_status ON lemonway_webhooks."WebhookDelivery"(processing_status);
 CREATE INDEX idx_webhook_delivery_received_at ON lemonway_webhooks."WebhookDelivery"(received_at);
-```
+\`\`\`
 
 #### Schema: `virtual_accounts`
-```sql
+\`\`\`sql
 -- cuentas_virtuales
 CREATE INDEX idx_cuentas_virtuales_user_id ON virtual_accounts.cuentas_virtuales(user_id);
 CREATE INDEX idx_cuentas_virtuales_lemonway_wallet_id ON virtual_accounts.cuentas_virtuales(lemonway_wallet_id);
@@ -846,10 +846,10 @@ CREATE INDEX idx_movimientos_cuenta_virtual_id ON virtual_accounts.movimientos_c
 CREATE INDEX idx_movimientos_tipo_operacion ON virtual_accounts.movimientos_cuenta(tipo_operacion_id);
 CREATE INDEX idx_movimientos_fecha_operacion ON virtual_accounts.movimientos_cuenta(fecha_operacion);
 CREATE INDEX idx_movimientos_lemonway_transaction ON virtual_accounts.movimientos_cuenta(lemonway_transaction_id);
-```
+\`\`\`
 
 #### Schema: `lemonway`
-```sql
+\`\`\`sql
 -- wallets
 CREATE UNIQUE INDEX idx_lemonway_wallets_lemonway_id ON lemonway.wallets(lemonway_id);
 CREATE UNIQUE INDEX idx_lemonway_wallets_external_id ON lemonway.wallets(external_id);
@@ -862,10 +862,10 @@ CREATE INDEX idx_lemonway_trans_wallet_id ON lemonway.transactions(wallet_id);
 CREATE INDEX idx_lemonway_trans_type ON lemonway.transactions(type);
 CREATE INDEX idx_lemonway_trans_status ON lemonway.transactions(status);
 CREATE INDEX idx_lemonway_trans_executed_at ON lemonway.transactions(executed_at);
-```
+\`\`\`
 
 #### Schema: `documentos`
-```sql
+\`\`\`sql
 -- document_type
 CREATE UNIQUE INDEX idx_document_type_name ON documentos.document_type(name);
 
@@ -889,7 +889,7 @@ CREATE INDEX idx_signed_document_firma_valida ON documentos.signed_document(firm
 -- signature_verification
 CREATE UNIQUE INDEX idx_signature_verification_id ON documentos.signature_verification(id);
 CREATE INDEX idx_signature_verification_signed_document_id ON documentos.signature_verification(signed_document_id);
-```
+\`\`\`
 
 ---
 
@@ -904,16 +904,16 @@ CREATE INDEX idx_signature_verification_signed_document_id ON documentos.signatu
 - `public.admin_user_roles` - Asignación usuarios → roles
 
 **Roles predefinidos:**
-```sql
+\`\`\`sql
 - admin: Acceso total
 - operator: Operaciones del día a día
 - viewer: Solo lectura
 - finance: Acceso a cuentas y transacciones
 - support: Acceso a usuarios e inversores
-```
+\`\`\`
 
 **Permisos por recurso:**
-```sql
+\`\`\`sql
 - users:read, users:write, users:delete
 - payment_accounts:read, payment_accounts:write
 - transactions:read, transactions:write
@@ -922,7 +922,7 @@ CREATE INDEX idx_signature_verification_signed_document_id ON documentos.signatu
 - virtual_accounts:read, virtual_accounts:write
 - settings:read, settings:write
 - documentos:read, documentos:write
-```
+\`\`\`
 
 ---
 
@@ -968,7 +968,7 @@ CREATE INDEX idx_signature_verification_signed_document_id ON documentos.signatu
 ## 📊 Vistas Materializadas
 
 ### `investors.user_stats`
-```sql
+\`\`\`sql
 CREATE MATERIALIZED VIEW investors.user_stats AS
 SELECT
   COUNT(*) as total_users,
@@ -985,10 +985,10 @@ SELECT
   COUNT(*) FILTER (WHERE last_login_at >= NOW() - INTERVAL '24 hours') as active_last_24h
 FROM investors."User"
 WHERE deleted_at IS NULL;
-```
+\`\`\`
 
 ### `lemonway_webhooks.WebhookStats`
-```sql
+\`\`\`sql
 CREATE MATERIALIZED VIEW lemonway_webhooks."WebhookStats" AS
 SELECT
   COUNT(*) as total_webhooks,
@@ -1000,7 +1000,7 @@ SELECT
   COUNT(*) FILTER (WHERE processing_status = 'failed' 
                    AND received_at >= NOW() - INTERVAL '24 hours') as failed_24h_count
 FROM lemonway_webhooks."WebhookDelivery";
-```
+\`\`\`
 
 **Refresh:** Se refrescan automáticamente cada hora mediante cron jobs.
 
@@ -1010,7 +1010,7 @@ FROM lemonway_webhooks."WebhookDelivery";
 
 **Orden de ejecución de scripts SQL:**
 
-```
+\`\`\`
 001-create-tables.sql              → public core
 002-create-payments-schema.sql     → payments schema
 005-add-user-audit-log.sql         → auditoría
@@ -1030,7 +1030,7 @@ FROM lemonway_webhooks."WebhookDelivery";
 103-create-proyectos-schema.sql     → proyectos (NUEVO)
 104-create-inversiones-schema.sql  → inversiones (NUEVO)
 105-create-tasks-schema.sql        → tasks (NUEVO)
-```
+\`\`\`
 
 **Nota:** Ejecutar en orden secuencial para mantener dependencias.
 

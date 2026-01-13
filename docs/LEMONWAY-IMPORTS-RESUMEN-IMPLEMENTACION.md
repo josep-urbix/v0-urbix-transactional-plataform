@@ -119,16 +119,16 @@
 ## 📋 Scripts SQL Pendientes de Ejecución
 
 ### 1. Script 140: Permisos RBAC
-```bash
+\`\`\`bash
 # Ejecutar en Neon:
 scripts/140-add-lemonway-imports-permissions.sql
-```
+\`\`\`
 
 ### 2. Script 141: Método API Explorer
-```bash
+\`\`\`bash
 # Ejecutar en Neon:
 scripts/141-add-get-account-transactions-method.sql
-```
+\`\`\`
 
 ---
 
@@ -167,10 +167,10 @@ scripts/141-add-get-account-transactions-method.sql
 
 ### Configuración requerida:
 1. 📝 Configurar Cron Job en Vercel para ejecutar:
-   ```
+   \`\`\`
    GET /api/cron/process-lemonway-imports
    Header: Authorization: Bearer <CRON_SECRET>
-   ```
+   \`\`\`
    Frecuencia recomendada: cada 15-30 minutos
 
 ### Tareas pendientes acordadas:

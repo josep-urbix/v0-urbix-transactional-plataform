@@ -23,7 +23,7 @@ Crear un panel administrativo completo para gestionar:
 
 ### 2.1 Entidades Principales
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────┐
 │ LEMONWAY MANAGEMENT SYSTEM                              │
 ├─────────────────────────────────────────────────────────┤
@@ -76,7 +76,7 @@ Crear un panel administrativo completo para gestionar:
 │     └─ is_active                                         │
 │                                                           │
 └─────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -84,7 +84,7 @@ Crear un panel administrativo completo para gestionar:
 
 ### 3.1 Navegación Principal (Dashboard)
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────┐
 │ URBIX - Configuración Lemonway                          │
 ├─────────────────────────────────────────────────────────┤
@@ -105,7 +105,7 @@ Crear un panel administrativo completo para gestionar:
 │                                  • View API Docs       │
 │                                                           │
 └─────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -117,7 +117,7 @@ Crear un panel administrativo completo para gestionar:
 
 **Componentes:**
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────┐
 │ Configuración Lemonway                       [Edit] [Save]│
 ├──────────────────────────────────────────────────────────┤
@@ -148,7 +148,7 @@ Crear un panel administrativo completo para gestionar:
 │ [Prueba Conexión] [Ver Logs] [Restaurar Defecto]         │
 │                                                            │
 └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 **Funcionalidades:**
 - ✅ Ver/editar configuración actual
@@ -167,7 +167,7 @@ Crear un panel administrativo completo para gestionar:
 
 **Componentes:**
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────┐
 │ Métodos Disponibles                     [+ Nuevo] [Importar]│
 ├──────────────────────────────────────────────────────────┤
@@ -234,7 +234,7 @@ Al hacer click en un método:
 │ [Prueba Llamada] [Copiar Schema] [Historial]            │
 │                                                            │
 └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 **Funcionalidades:**
 - ✅ Tabla paginada con búsqueda/filtrado
@@ -256,7 +256,7 @@ Al hacer click en un método:
 
 **Componentes:**
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────┐
 │ Queries Personalizadas              [+ Nueva] [Importar Template]│
 ├──────────────────────────────────────────────────────────┤
@@ -331,7 +331,7 @@ Al hacer click en una query:
 │ [Prueba Query] [Guardar] [Cancelar]                     │
 │                                                            │
 └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 **Funcionalidades:**
 - ✅ Tabla paginada con búsqueda/filtrado
@@ -354,7 +354,7 @@ Al hacer click en una query:
 
 **Componentes:**
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────┐
 │ Tipos de Operación                      [+ Nuevo] [Importar]│
 ├──────────────────────────────────────────────────────────┤
@@ -409,7 +409,7 @@ Detalle al hacer click:
 │ [Guardar] [Cancelar]                                     │
 │                                                            │
 └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 **Funcionalidades:**
 - ✅ CRUD de tipos de operación
@@ -428,7 +428,7 @@ Detalle al hacer click:
 
 **Componentes:**
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────┐
 │ Políticas de Reintento                    [+ Nueva] [Clonar]│
 ├──────────────────────────────────────────────────────────┤
@@ -502,7 +502,7 @@ Detalle:
 │ [Guardar] [Cancelar]                                     │
 │                                                            │
 └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 **Funcionalidades:**
 - ✅ CRUD de políticas de reintento
@@ -520,7 +520,7 @@ Detalle:
 
 **Componentes:**
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────┐
 │ Logs & Auditoría de Lemonway           [Exportar] [Filtros]│
 ├──────────────────────────────────────────────────────────┤
@@ -599,7 +599,7 @@ Al hacer click en un log:
 │ [Reintentar] [Cancelar]                                  │
 │                                                            │
 └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 **Funcionalidades:**
 - ✅ Tabla paginada con filtros avanzados
@@ -619,7 +619,7 @@ Al hacer click en un log:
 
 **Componentes:**
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────┐
 │ Webhooks Lemonway                    [Ver Configuración] │
 ├──────────────────────────────────────────────────────────┤
@@ -642,7 +642,7 @@ Al hacer click en un log:
 │ └───────────┴────────┴────────┴────────┴────────┘       ││
 │                                                            │
 └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 **Funcionalidades:**
 - ✅ Ver estado del webhook
@@ -659,7 +659,7 @@ Al hacer click en un log:
 
 ### 5.1 Componentes de UI
 
-```
+\`\`\`
 LemonwayDashboard
 ├── ConfigSection
 │   ├── EnvironmentSelector
@@ -706,7 +706,7 @@ LemonwayDashboard
     ├── LoadingSpinner
     ├── ErrorBoundary
     └── AuditTrail
-```
+\`\`\`
 
 ---
 
@@ -714,7 +714,7 @@ LemonwayDashboard
 
 ### 6.1 Backend Endpoints
 
-```
+\`\`\`
 GET/PUT  /api/admin/lemonway/config
 GET/POST /api/admin/lemonway/methods
 GET      /api/admin/lemonway/methods/:id
@@ -748,7 +748,7 @@ GET      /api/admin/lemonway/webhooks
 GET      /api/admin/lemonway/webhooks/deliveries
 POST     /api/admin/lemonway/webhooks/test-delivery
 POST     /api/admin/lemonway/webhooks/:id/resend
-```
+\`\`\`
 
 ---
 
@@ -756,7 +756,7 @@ POST     /api/admin/lemonway/webhooks/:id/resend
 
 ### 7.1 Flujo: Crear Nueva Query
 
-```
+\`\`\`
 1. Usuario clica "+ Nueva"
 2. Se abre modal de selección de método
 3. Usuario selecciona "GetWalletTransactions"
@@ -772,11 +772,11 @@ POST     /api/admin/lemonway/webhooks/:id/resend
 11. Usuario clica "Guardar"
 12. Sistema guarda: POST /api/admin/lemonway/queries
 13. Query aparece en tabla con ID generado
-```
+\`\`\`
 
 ### 7.2 Flujo: Importar Métodos Desde API
 
-```
+\`\`\`
 1. Usuario clica "Importar" en sección Métodos
 2. Se abre diálogo de confirmación
 3. Usuario clica "Importar Ahora"
@@ -788,7 +788,7 @@ POST     /api/admin/lemonway/webhooks/:id/resend
    - 3 métodos actualizados
    - 0 errores
 8. Usuario puede filtrar por "Recently Imported"
-```
+\`\`\`
 
 ---
 
@@ -796,7 +796,7 @@ POST     /api/admin/lemonway/webhooks/:id/resend
 
 ### 8.1 Nuevas Tablas SQL
 
-```sql
+\`\`\`sql
 -- Tabla: LemonwayQuery
 CREATE TABLE public."LemonwayQuery" (
   id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -845,7 +845,7 @@ CREATE TABLE public."LemonwayOperationType" (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-```
+\`\`\`
 
 ---
 

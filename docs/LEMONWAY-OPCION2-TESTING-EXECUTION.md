@@ -24,11 +24,11 @@ Todas las 7 fases han sido completadas exitosamente. Documentando validación.
 - [x] Todos los índices principales implementados
 
 ### SQL Scripts:
-```sql
+\`\`\`sql
 -- Ejecutar en orden:
 1. scripts/140-create-lemonway-opcion2-schema.sql
 2. scripts/141-create-lemonway-opcion2-rbac.sql
-```
+\`\`\`
 
 ---
 
@@ -199,7 +199,7 @@ Todas las 7 fases han sido completadas exitosamente. Documentando validación.
 
 ### Pruebas unitarias (20 tests):
 
-```bash
+\`\`\`bash
 # Queue Management
 ✅ test-queue-fifo-ordering.ts - Verifica orden URGENT > NORMAL
 ✅ test-queue-priority-selection.ts - Selecciona correcto
@@ -226,11 +226,11 @@ Todas las 7 fases han sido completadas exitosamente. Documentando validación.
 ✅ test-api-explorer-dryrun.ts - Explorer en sandbox
 ✅ test-api-explorer-masking.ts - Masking funciona
 ✅ test-api-explorer-snapshots.ts - Snapshots guardados
-```
+\`\`\`
 
 ### Pruebas de integración (15 tests):
 
-```bash
+\`\`\`bash
 ✅ test-queue-to-rbac.ts - Cola respeta RBAC
 ✅ test-rbac-to-endpoints.ts - Endpoints protegidos
 ✅ test-cron-to-queue.ts - Cron procesa cola
@@ -246,11 +246,11 @@ Todas las 7 fases han sido completadas exitosamente. Documentando validación.
 ✅ test-dashboard-tabs-loading.ts - Todos los tabs cargan
 ✅ test-permissions-enforcement.ts - RBAC se aplica
 ✅ test-end-to-end-request.ts - Request completa
-```
+\`\`\`
 
 ### Pruebas de API (12 tests):
 
-```bash
+\`\`\`bash
 ✅ GET /api/admin/lemonway/queue - Retorna items
 ✅ POST /api/admin/lemonway/queue - Actualiza estado
 ✅ POST /api/admin/lemonway/queue/enqueue - Encola
@@ -263,11 +263,11 @@ Todas las 7 fases han sido completadas exitosamente. Documentando validación.
 ✅ POST /api/admin/lemonway/webhooks-sim - Simula webhooks
 ✅ GET /api/admin/lemonway/health - Health status
 ✅ GET/PUT /api/admin/lemonway/rate-limit - Rate limit
-```
+\`\`\`
 
 ### Pruebas de seguridad (10 tests):
 
-```bash
+\`\`\`bash
 ✅ test-sql-injection.ts - Protegido contra SQL injection
 ✅ test-xss-protection.ts - XSS protegido
 ✅ test-csrf-tokens.ts - CSRF protegido
@@ -278,7 +278,7 @@ Todas las 7 fases han sido completadas exitosamente. Documentando validación.
 ✅ test-permission-cache-invalidation.ts - Cache invalida correctamente
 ✅ test-unauthorized-access.ts - Acceso denegado sin permisos
 ✅ test-token-expiration.ts - Tokens expiran correctamente
-```
+\`\`\`
 
 ### Checklist manual (50+ items):
 

@@ -10,7 +10,7 @@ Agregar un sistema de **priorización en dos niveles (NORMAL | URGENTE)** a la c
 
 ### 2.1 Arquitectura Actual
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────┐
 │  ENTRADA: LemonwayImportWorker.processImportRun()  │
 ├─────────────────────────────────────────────────────┤
@@ -37,11 +37,11 @@ Agregar un sistema de **priorización en dos niveles (NORMAL | URGENTE)** a la c
 │  ├─ ERROR: UPDATE retry_count++, next_retry_at++  │
 │  └─ FAIL: UPDATE final_failure=true                │
 └─────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ### 2.2 Tabla Actual: LemonwayApiCallLog
 
-```sql
+\`\`\`sql
 CREATE TABLE "LemonwayApiCallLog" (
   id UUID,
   endpoint TEXT,
@@ -56,13 +56,13 @@ CREATE TABLE "LemonwayApiCallLog" (
   created_at TIMESTAMP,
   -- SIN CAMPO DE PRIORIDAD
 );
-```
+\`\`\`
 
 ### 2.3 Problema: FIFO sin Priorización
 
 **Escenario actual problemático:**
 
-```
+\`\`\`
 Cola actual:
 ┌─────────────────────────────────────┐
 │ 1. [PENDING] Get transactions       │  ← Se procesa primero
@@ -76,7 +76,7 @@ Cola actual:
 └─────────────────────────────────────┘
 
 SLA = Tiempo espera = 330s (5.5 min) para liquidación crítica
-```
+\`\`\`
 
 **Impacto de negocio:**
 - Liquidaciones de inversores retrasadas
@@ -90,7 +90,7 @@ SLA = Tiempo espera = 330s (5.5 min) para liquidación crítica
 
 ### 3.1 Nuevo Campo: priority
 
-```sql
+\`\`\`sql
 -- Agregar columna priority a LemonwayApiCallLog
 ALTER TABLE "LemonwayApiCallLog"
 ADD COLUMN priority TEXT NOT NULL DEFAULT 'normal'
@@ -103,11 +103,11 @@ ON "LemonwayApiCallLog"(
   retry_status,
   next_retry_at
 );
-```
+\`\`\`
 
 ### 3.2 Nueva Query de Procesamiento
 
-```sql
+\`\`\`sql
 -- ACTUAL (FIFO)
 SELECT * FROM "LemonwayApiCallLog"
 WHERE retry_status = 'pending'
@@ -123,11 +123,11 @@ ORDER BY
   priority DESC,      -- urgent (1) antes que normal (0)
   created_at ASC      -- Mantener FIFO dentro de cada prioridad
 LIMIT 50;
-```
+\`\`\`
 
 ### 3.3 Nuevo Flujo con Priorización
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────┐
 │  ENTRADA: LemonwayImportWorker.processImportRun()   │
 ├──────────────────────────────────────────────────────┤
@@ -154,11 +154,11 @@ LIMIT 50;
 │  ↓                                                  │
 │  RESULTADO CON SLA MEJORADO                        │
 └──────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ### 3.4 Ejemplo Práctico: Nueva Cola Ordenada
 
-```
+\`\`\`
 Cola con priorización:
 ┌─────────────────────────────────────┐
 │ [URGENT] Liquidate investor         │  ← Se procesa 1º
@@ -175,7 +175,7 @@ Cola con priorización:
 └─────────────────────────────────────┘
 
 Mejora: SLA urgentes = 30s (vs 330s anterior)
-```
+\`\`\`
 
 ---
 
@@ -197,7 +197,7 @@ Mejora: SLA urgentes = 30s (vs 330s anterior)
 
 ### 4.2 Lógica de Determinación de Prioridad
 
-```typescript
+\`\`\`typescript
 function determinePriority(
   operationType: string,
   amount?: number,
@@ -231,7 +231,7 @@ function determinePriority(
   // Default
   return 'normal';
 }
-```
+\`\`\`
 
 ---
 
@@ -239,7 +239,7 @@ function determinePriority(
 
 ### 5.1 New Script: Add Priority Column
 
-```sql
+\`\`\`sql
 -- scripts/999-add-lemonway-queue-priority.sql
 -- Agregador: URBIX System
 -- Fecha: 2025-01-12
@@ -273,11 +273,11 @@ INSERT INTO "UserAuditLog" (
   '{"change": "add_priority_column", "type": "infrastructure"}',
   NOW()
 );
-```
+\`\`\`
 
 ### 5.2 Config Table: Priority Settings
 
-```sql
+\`\`\`sql
 -- Nueva tabla para configurar umbrales de prioridad
 CREATE TABLE IF NOT EXISTS "LemonwayPriorityConfig" (
   id SERIAL PRIMARY KEY,
@@ -310,7 +310,7 @@ INSERT INTO "LemonwayPriorityConfig" VALUES
 ('INVESTOR_PAYOUT', 'urgent', 'Pagar intereses', NULL, NULL, 600, 10000, true),
 ('GET_TRANSACTIONS', 'normal', 'Importar transacciones', NULL, 86400, 3600, 30000, true),
 ('IMPORT_DAILY', 'normal', 'Reporte diario', NULL, 86400, 86400, 60000, true);
-```
+\`\`\`
 
 ---
 
@@ -318,7 +318,7 @@ INSERT INTO "LemonwayPriorityConfig" VALUES
 
 ### 6.1 LemonwayImportWorker.ts
 
-```typescript
+\`\`\`typescript
 // Función mejorada: Agregar lógica de prioridad
 
 async processImportRun(
@@ -342,11 +342,11 @@ async processImportRun(
     ) VALUES (...)
   `;
 }
-```
+\`\`\`
 
 ### 6.2 retry-queue/route.ts (Cron)
 
-```typescript
+\`\`\`typescript
 // Cambiar query para ordenar por prioridad
 
 async function processQueue() {
@@ -370,7 +370,7 @@ async function processQueue() {
   // Procesar normal en paralelo (2 concurrent)
   await processInBatches(normalRequests, 2, 1000);
 }
-```
+\`\`\`
 
 ---
 
@@ -378,7 +378,7 @@ async function processQueue() {
 
 ### 7.1 Nueva Tab: "Queue Priority Management"
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────┐
 │ 🔴 URGENT QUEUE: 3 pending, avg wait: 45s           │
 ├─────────────────────────────────────────────────────┤
@@ -403,11 +403,11 @@ STATS:
 ├─ Avg normal processing: 12.5s
 ├─ Queue efficiency: 94%
 └─ Success rate: 98.7%
-```
+\`\`\`
 
 ### 7.2 Nuevos Permisos RBAC
 
-```typescript
+\`\`\`typescript
 // Nuevos permisos
 const newPermissions = [
   'lemonway:queue:view_priority',        // Ver queue prioritaria
@@ -421,7 +421,7 @@ const newPermissions = [
 // ├─ SuperAdmin: TODOS
 // ├─ LemonwayAdmin: view + boost + force
 // └─ Manager: view (readonly)
-```
+\`\`\`
 
 ---
 
@@ -429,7 +429,7 @@ const newPermissions = [
 
 ### 8.1 Nueva Sección del Panel
 
-```
+\`\`\`
 /dashboard/admin/lemonway/
 ├─ Configuration
 ├─ API Explorer
@@ -441,11 +441,11 @@ const newPermissions = [
 ├─ Webhooks
 ├─ Error Analysis
 └─ Reports
-```
+\`\`\`
 
 ### 8.2 Monitoreo en Dashboard Principal
 
-```
+\`\`\`
 ┌─────────────────────────────────────────┐
 │ Lemonway Integration Status             │
 ├─────────────────────────────────────────┤
@@ -456,7 +456,7 @@ const newPermissions = [
 │ • Last Sync: 12s ago                   │
 │ • Success Rate: 98.7%                  │
 └─────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 

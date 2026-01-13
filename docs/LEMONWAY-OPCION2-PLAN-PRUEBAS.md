@@ -22,7 +22,7 @@
 
 ### 1.1 Enfoque General
 
-```
+\`\`\`
 Pirámide de Testing:
         🔺 E2E (5% - 3 tests)
        / \
@@ -31,7 +31,7 @@ Pirámide de Testing:
     / Unit  \ (70% - 35 tests)
    /         \
   ___________
-```
+\`\`\`
 
 - **Unitarias (70%)**: Lógica pura, funciones isoladas, sin BD
 - **Integración (25%)**: APIs + BD, flujos completos
@@ -39,7 +39,7 @@ Pirámide de Testing:
 
 ### 1.2 Ambientes de Testing
 
-```
+\`\`\`
 ┌─────────────────────────────────────┐
 │  Development (Local)                │
 │  - SQLite o Neon test DB            │
@@ -60,7 +60,7 @@ Pirámide de Testing:
 │  - Lemonway producción              │
 │  - Webhooks reales                  │
 └─────────────────────────────────────┘
-```
+\`\`\`
 
 ### 1.3 Métricas de Éxito
 
@@ -96,7 +96,7 @@ Pirámide de Testing:
 
 **Archivo: `lib/lemonway/queue-manager.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('QueueManager - Pruebas Unitarias', () => {
   
   // CATEGORÍA: Inserción en cola
@@ -177,13 +177,13 @@ describe('QueueManager - Pruebas Unitarias', () => {
     })
   })
 })
-```
+\`\`\`
 
 ### 3.2 Pruebas de RBAC Middleware (8 tests)
 
 **Archivo: `lib/auth/rbac-middleware.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('RBAC Middleware - Pruebas Unitarias', () => {
   
   // CATEGORÍA: Verificación de permisos
@@ -231,13 +231,13 @@ describe('RBAC Middleware - Pruebas Unitarias', () => {
     })
   })
 })
-```
+\`\`\`
 
 ### 3.3 Pruebas de Query Manager (10 tests)
 
 **Archivo: `lib/lemonway/query-manager.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('QueryManager - Pruebas Unitarias', () => {
   
   describe('createCustomQuery', () => {
@@ -295,13 +295,13 @@ describe('QueryManager - Pruebas Unitarias', () => {
     })
   })
 })
-```
+\`\`\`
 
 ### 3.4 Pruebas de Dry-run Mode (8 tests)
 
 **Archivo: `lib/lemonway/dry-run-mode.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('DryRunMode - Pruebas Unitarias', () => {
   
   describe('executeDryRun', () => {
@@ -347,13 +347,13 @@ describe('DryRunMode - Pruebas Unitarias', () => {
     })
   })
 })
-```
+\`\`\`
 
 ### 3.5 Pruebas de Snapshots (7 tests)
 
 **Archivo: `lib/lemonway/snapshots.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('Snapshots - Pruebas Unitarias', () => {
   
   describe('createSnapshot', () => {
@@ -396,7 +396,7 @@ describe('Snapshots - Pruebas Unitarias', () => {
     })
   })
 })
-```
+\`\`\`
 
 [Continúa con otras suites: Field Mappings (5), Webhooks (4), Monitoring (5), UI Components (4)]
 
@@ -408,7 +408,7 @@ describe('Snapshots - Pruebas Unitarias', () => {
 
 **Archivo: `__tests__/integration/queue-rbac.integration.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('Queue Manager + RBAC - Pruebas de Integración', () => {
   
   beforeEach(async () => {
@@ -481,13 +481,13 @@ describe('Queue Manager + RBAC - Pruebas de Integración', () => {
     expect(result.success).toBe(true)
   })
 })
-```
+\`\`\`
 
 ### 4.2 Pruebas de Integración API Explorer + Dry-run (5 tests)
 
 **Archivo: `__tests__/integration/api-explorer-dryrun.integration.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('API Explorer + Dry-run - Pruebas de Integración', () => {
   
   beforeEach(async () => {
@@ -570,13 +570,13 @@ describe('API Explorer + Dry-run - Pruebas de Integración', () => {
     expect(result.isDryRun).toBe(true)
   })
 })
-```
+\`\`\`
 
 ### 4.3 Pruebas de Integración Query Manager + Versionado (3 tests)
 
 **Archivo: `__tests__/integration/query-versioning.integration.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('Query Manager + Versionado - Pruebas de Integración', () => {
   
   test('✅ Debe crear, actualizar, y rollback de query', async () => {
@@ -645,7 +645,7 @@ describe('Query Manager + Versionado - Pruebas de Integración', () => {
     expect(curlCommand).toContain(LEMONWAY_BASE_URL)
   })
 })
-```
+\`\`\`
 
 [Continúa con más suites de integración...]
 
@@ -657,7 +657,7 @@ describe('Query Manager + Versionado - Pruebas de Integración', () => {
 
 **Archivo: `__tests__/api/queue-insert.api.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('POST /api/admin/lemonway/queue/insert', () => {
   
   test('✅ Debe retornar 201 al insertar item válido', async () => {
@@ -729,13 +729,13 @@ describe('POST /api/admin/lemonway/queue/insert', () => {
     expect(accessLog[0].userEmail).toBe('admin@test.com')
   })
 })
-```
+\`\`\`
 
 ### 5.2 Endpoint: GET /api/admin/lemonway/queue/stats
 
 **Archivo: `__tests__/api/queue-stats.api.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('GET /api/admin/lemonway/queue/stats', () => {
   
   beforeEach(async () => {
@@ -770,7 +770,7 @@ describe('GET /api/admin/lemonway/queue/stats', () => {
     expect(response.status).toBe(403)
   })
 })
-```
+\`\`\`
 
 [Continúa con más endpoints: POST /api/admin/lemonway/query, GET /api/admin/lemonway/api-explorer/execute, etc.]
 
@@ -782,7 +782,7 @@ describe('GET /api/admin/lemonway/queue/stats', () => {
 
 **Archivo: `__tests__/security/rbac-matrix.security.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('RBAC Matrix - 26 Permisos x 5 Roles', () => {
   
   // Definir matriz esperada
@@ -831,13 +831,13 @@ describe('RBAC Matrix - 26 Permisos x 5 Roles', () => {
     })
   })
 })
-```
+\`\`\`
 
 ### 6.2 Pruebas de Inyección/Seguridad
 
 **Archivo: `__tests__/security/injection.security.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('Seguridad - Inyección y Validación', () => {
   
   test('✅ Debe prevenir SQL injection en query params', async () => {
@@ -891,7 +891,7 @@ describe('Seguridad - Inyección y Validación', () => {
     expect(operationLog[0].request_body).not.toContain('SECRET_TOKEN')
   })
 })
-```
+\`\`\`
 
 ---
 
@@ -901,7 +901,7 @@ describe('Seguridad - Inyección y Validación', () => {
 
 **Archivo: `__tests__/queue/fifo-dual.queue.test.ts`**
 
-```typescript
+\`\`\`typescript
 describe('Cola FIFO Dual - URGENT vs NORMAL', () => {
   
   test('✅ Debe procesar URGENT antes que NORMAL', async () => {
@@ -1038,7 +1038,7 @@ describe('Cola FIFO Dual - URGENT vs NORMAL', () => {
     expect(item[0].status).toBe('FAILED')
   })
 })
-```
+\`\`\`
 
 ---
 
@@ -1048,7 +1048,7 @@ describe('Cola FIFO Dual - URGENT vs NORMAL', () => {
 
 **Archivo: `scripts/test-validate-db-schema.sql`**
 
-```sql
+\`\`\`sql
 -- ============================================
 -- VALIDACIONES DE SCHEMA BASE DE DATOS
 -- ============================================
@@ -1120,7 +1120,7 @@ ORDER BY category;
 -- EXPECTED: NORMAL: X, URGENT: Y
 
 COMMIT;
-```
+\`\`\`
 
 ---
 
@@ -1128,7 +1128,7 @@ COMMIT;
 
 ### 9.1 Testing de UI - Panel Admin Lemonway
 
-```
+\`\`\`
 SECCIÓN: Overview Dashboard
 □ Verificar que KPI cards muestren datos correctos
   □ Queue stats (pending, processing, failed)
@@ -1303,7 +1303,7 @@ SECCIÓN: Mobile Responsiveness
   □ Layout debe reflow correctamente
   □ Botones deben ser clickeables
   □ Tablas deben ser scrolleables
-```
+\`\`\`
 
 ---
 
@@ -1312,24 +1312,24 @@ SECCIÓN: Mobile Responsiveness
 ### 10.1 Plan de Rollback
 
 **Escenario 1: Falló creación de tabla**
-```sql
+\`\`\`sql
 -- Rollback script
 DROP TABLE IF EXISTS lemonway_temp.queue CASCADE;
 DROP TABLE IF EXISTS lemonway_temp.queue_item CASCADE;
 -- Re-ejecutar migration 139
 \i scripts/139-create-lemonway-import-schema.sql
-```
+\`\`\`
 
 **Escenario 2: Datos corruptos en BD**
-```sql
+\`\`\`sql
 -- Validar integridad
 SELECT COUNT(*) FROM lemonway_temp.queue WHERE category NOT IN ('URGENT', 'NORMAL');
 -- Si hay resultados, rollback completo a checkpoint anterior
-```
+\`\`\`
 
 ### 10.2 Testing de Disaster Recovery
 
-```typescript
+\`\`\`typescript
 describe('Disaster Recovery', () => {
   
   test('✅ Debe recuperar items de cola después de crash', async () => {
@@ -1366,7 +1366,7 @@ describe('Disaster Recovery', () => {
     expect(recovered[0].status).toBe('PROCESSING')
   })
 })
-```
+\`\`\`
 
 ---
 
@@ -1374,7 +1374,7 @@ describe('Disaster Recovery', () => {
 
 ### Pasos para ejecutar todas las pruebas:
 
-```bash
+\`\`\`bash
 # 1. Preparar ambiente
 npm install
 
@@ -1399,11 +1399,11 @@ npm run test:db:validate
 
 # 7. E2E con Playwright
 npm run test:e2e
-```
+\`\`\`
 
 ### Salida esperada:
 
-```
+\`\`\`
 UNIT TESTS:       59 passed
 INTEGRATION:      30 passed
 API TESTS:        15 passed
@@ -1420,7 +1420,7 @@ COVERAGE:
 
 TOTAL: 144 tests passed ✅
 TIME: ~8 minutes
-```
+\`\`\`
 
 ---
 

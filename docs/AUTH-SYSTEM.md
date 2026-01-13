@@ -53,7 +53,7 @@ El sistema de autenticación y autorización está centralizado en `lib/auth/` y
 
 Registra todos los intentos de acceso (permitidos y denegados):
 
-```sql
+\`\`\`sql
 CREATE TABLE "AccessLog" (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "userId" TEXT,
@@ -75,7 +75,7 @@ CREATE INDEX idx_access_log_user_id ON "AccessLog"("userId");
 CREATE INDEX idx_access_log_created_at ON "AccessLog"("createdAt" DESC);
 CREATE INDEX idx_access_log_allowed ON "AccessLog"("allowed");
 CREATE INDEX idx_access_log_resource ON "AccessLog"(resource);
-```
+\`\`\`
 
 **Campos:**
 - `userId`: ID del usuario que intenta acceder (puede ser NULL si no está autenticado)
@@ -95,7 +95,7 @@ CREATE INDEX idx_access_log_resource ON "AccessLog"(resource);
 
 Permisos granulares disponibles:
 
-```sql
+\`\`\`sql
 CREATE TABLE "Permission" (
   id UUID PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
@@ -103,25 +103,25 @@ CREATE TABLE "Permission" (
   action TEXT NOT NULL,
   description TEXT
 );
-```
+\`\`\`
 
 ### Tabla `RolePermission`
 
 Asignación de permisos a roles:
 
-```sql
+\`\`\`sql
 CREATE TABLE "RolePermission" (
   role TEXT NOT NULL,
   "permissionId" UUID NOT NULL REFERENCES "Permission"(id),
   PRIMARY KEY (role, "permissionId")
 );
-```
+\`\`\`
 
 ### Tabla `Role`
 
 Roles del sistema:
 
-```sql
+\`\`\`sql
 CREATE TABLE "Role" (
   id UUID PRIMARY KEY,
   name TEXT NOT NULL UNIQUE,
@@ -129,7 +129,7 @@ CREATE TABLE "Role" (
   "isSystem" BOOLEAN DEFAULT false,
   "createdAt" TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 **Roles del sistema:**
 - **superadmin**: Acceso completo sin restricciones
@@ -140,7 +140,7 @@ CREATE TABLE "Role" (
 
 ### Patrón recomendado (con auditoría automática):
 
-```typescript
+\`\`\`typescript
 import { getSession, requireAdmin } from '@/lib/auth'
 
 export async function GET(request: Request) {
@@ -152,11 +152,11 @@ export async function GET(request: Request) {
   
   // Lógica de la API...
 }
-```
+\`\`\`
 
 ### Otros helpers disponibles:
 
-```typescript
+\`\`\`typescript
 // Requiere superadmin
 const authResult = await requireSuperAdmin(session?.user, 'system_config', 'edit', request)
 
@@ -165,11 +165,11 @@ const authResult = await requireMinRole(session?.user, 'admin', 'users', 'view',
 
 // Requiere permiso específico
 const authResult = await requirePermission(session?.user, 'users.delete', 'users', 'delete', request)
-```
+\`\`\`
 
 ### Patrón antiguo (sin auditoría):
 
-```typescript
+\`\`\`typescript
 import { getSession, isAdminRole } from '@/lib/auth'
 
 export async function GET(request: Request) {
@@ -184,13 +184,13 @@ export async function GET(request: Request) {
   
   // Lógica...
 }
-```
+\`\`\`
 
 **Nota:** El patrón antiguo NO registra accesos. Se recomienda migrar a los helpers del middleware.
 
 ## Uso en Server Components
 
-```typescript
+\`\`\`typescript
 import { getSession, isAdminRole } from '@/lib/auth'
 
 export default async function AdminPage() {
@@ -202,13 +202,13 @@ export default async function AdminPage() {
   
   return <div>...</div>
 }
-```
+\`\`\`
 
 ## Jerarquía de Roles
 
-```
+\`\`\`
 superadmin > admin > user
-```
+\`\`\`
 
 - **superadmin**: Acceso completo sin restricciones
 - **admin**: Acceso según permisos asignados en BD
@@ -246,7 +246,7 @@ Filtra por:
 
 ## Ejemplo Completo
 
-```typescript
+\`\`\`typescript
 // app/api/admin/users/route.ts
 import { NextResponse } from 'next/server'
 import { getSession, requireAdmin } from '@/lib/auth'

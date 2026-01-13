@@ -41,15 +41,15 @@ This preview is running in demo mode with simplified authentication. For full fu
 ### Local Development
 
 1. **Clone and install dependencies**:
-   ```bash
+   \`\`\`bash
    npm install
-   ```
+   \`\`\`
 
 2. **Set up environment variables**:
    Copy `.env.example` to `.env` and fill in your values:
-   ```bash
+   \`\`\`bash
    cp .env.example .env
-   ```
+   \`\`\`
 
    Required variables:
    - `DATABASE_URL`: Database connection string (from Neon or Vercel Postgres)
@@ -61,32 +61,32 @@ This preview is running in demo mode with simplified authentication. For full fu
    - `ALLOWED_EMAIL_DOMAINS`: Comma-separated list of allowed domains (default: urbix.es)
 
 3. **Initialize the database**:
-   ```bash
+   \`\`\`bash
    # Run the SQL scripts in the scripts/ folder using your database client
    # Or use the Neon SQL editor to execute:
    # - 001-init-database.sql (creates tables)
    # - 002-create-admin-user.sql (creates admin user)
    # - 003-add-extracted-links.sql (adds link columns)
    # - 004-add-contact-email.sql (adds contact email column)
-   ```
+   \`\`\`
    
    **IMPORTANT - Set Admin Password**:
    After running the database scripts, you must set a secure admin password:
    
-   ```bash
+   \`\`\`bash
    # Set your desired admin password as an environment variable
    export ADMIN_PASSWORD="YourSecurePassword123!"
    
    # Run the password reset script from v0 Scripts panel
    # Or execute: node --loader ts-node/esm scripts/reset-admin-password.ts
-   ```
+   \`\`\`
    
    The default admin email is `admin@urbix.es`. After setting the password, you can login with this email and your chosen password.
 
 4. **Run the development server**:
-   ```bash
+   \`\`\`bash
    npm run dev
-   ```
+   \`\`\`
 
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
@@ -147,7 +147,7 @@ This preview is running in demo mode with simplified authentication. For full fu
 
 ## Project Structure
 
-```
+\`\`\`
 ├── app/
 │   ├── api/
 │   │   ├── session/                 # Session API for auth
@@ -177,7 +177,7 @@ This preview is running in demo mode with simplified authentication. For full fu
         ├── 002-create-admin-user.sql # Creates admin user
         ├── 003-add-extracted-links.sql # Adds link columns
         └── 004-add-contact-email.sql # Adds contact email column
-```
+\`\`\`
 
 ## API Endpoints
 

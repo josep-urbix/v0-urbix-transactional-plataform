@@ -12,7 +12,7 @@ Este documento detalla DÓNDE se almacena toda la información necesaria para co
 
 **TODA la configuración de Lemonway se guarda en esta tabla única:**
 
-```sql
+\`\`\`sql
 CREATE TABLE "LemonwayConfig" (
   id SERIAL PRIMARY KEY,
   environment VARCHAR(50), -- 'sandbox' | 'production'
@@ -28,10 +28,10 @@ CREATE TABLE "LemonwayConfig" (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP
 );
-```
+\`\`\`
 
 **Ubicación en código:**
-```typescript
+\`\`\`typescript
 // lib/lemonway-client.ts líneas 51-90
 static async getConfig(): Promise<LemonwayConfig | null> {
   const result = await sql`
@@ -52,13 +52,13 @@ static async getConfig(): Promise<LemonwayConfig | null> {
     accountId: config.account_id
   }
 }
-```
+\`\`\`
 
 ### 2.2 Tabla de Métodos Disponibles: `public."LemonwayApiMethod"`
 
 Almacena la definición de TODOS los endpoints que Lemonway pone disponibles:
 
-```sql
+\`\`\`sql
 CREATE TABLE "LemonwayApiMethod" (
   id VARCHAR(50) PRIMARY KEY,
   name VARCHAR(255),
@@ -74,10 +74,10 @@ CREATE TABLE "LemonwayApiMethod" (
   created_at TIMESTAMP,
   updated_at TIMESTAMP
 );
-```
+\`\`\`
 
 **Ejemplo de registros:**
-```json
+\`\`\`json
 {
   "id": "GetWalletTransactions",
   "name": "Get Wallet Transactions",
@@ -99,13 +99,13 @@ CREATE TABLE "LemonwayApiMethod" (
     }
   }
 }
-```
+\`\`\`
 
 ### 2.3 Tabla de Logs de Llamadas API: `public."LemonwayApiCallLog"`
 
 Almacena TODAS las llamadas realizadas a Lemonway para auditoría y reintentos:
 
-```sql
+\`\`\`sql
 CREATE TABLE "LemonwayApiCallLog" (
   id SERIAL PRIMARY KEY,
   request_id VARCHAR(255),
@@ -125,13 +125,13 @@ CREATE TABLE "LemonwayApiCallLog" (
   final_failure BOOLEAN,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-```
+\`\`\`
 
 ### 2.4 Tabla de Historial de Reintentos: `public."LemonwayApiCallRetryHistory"`
 
 Almacena el historial de cada reintento:
 
-```sql
+\`\`\`sql
 CREATE TABLE "LemonwayApiCallRetryHistory" (
   id SERIAL PRIMARY KEY,
   api_call_log_id INT REFERENCES "LemonwayApiCallLog"(id),
@@ -143,13 +143,13 @@ CREATE TABLE "LemonwayApiCallRetryHistory" (
   response_payload JSONB,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-```
+\`\`\`
 
 ### 2.5 Tabla de Métodos Deshabilitados: `public."LemonwayDisabledMethods"`
 
 Control de qué métodos están disponibles o deshabilitados:
 
-```sql
+\`\`\`sql
 CREATE TABLE "LemonwayDisabledMethods" (
   id SERIAL PRIMARY KEY,
   method_id VARCHAR(50),
@@ -158,7 +158,7 @@ CREATE TABLE "LemonwayDisabledMethods" (
   disabled_by VARCHAR(255),
   re_enable_at TIMESTAMP
 );
-```
+\`\`\`
 
 ---
 
@@ -166,7 +166,7 @@ CREATE TABLE "LemonwayDisabledMethods" (
 
 ### 3.1 Paso 1: Instanciar el Cliente
 
-```typescript
+\`\`\`typescript
 // app/api/lemonway/[endpoint]/route.ts
 import { LemonwayClient } from '@/lib/lemonway-client'
 
@@ -180,11 +180,11 @@ if (!config) {
 
 // Instanciar cliente
 const client = new LemonwayClient(config)
-```
+\`\`\`
 
 ### 3.2 Paso 2: Obtener Bearer Token (OAuth)
 
-```typescript
+\`\`\`typescript
 // lib/lemonway-client.ts líneas 105-160
 async getBearerToken(): Promise<string> {
   // Si el token está en caché y no ha expirado, retornarlo
@@ -213,11 +213,11 @@ async getBearerToken(): Promise<string> {
 
   return this.bearerToken
 }
-```
+\`\`\`
 
 ### 3.3 Paso 3: Construir URL Base
 
-```typescript
+\`\`\`typescript
 // lib/lemonway-client.ts líneas 98-103
 private getApiBaseUrl(): string {
   const envName = this.config.environmentName || "urbix"
@@ -230,7 +230,7 @@ private getApiBaseUrl(): string {
 // Ejemplo resultado:
 // Sandbox: https://sandbox-api.lemonway.fr/mb/urbix/dev/directkitrest/v2
 // Production: https://api.lemonway.fr/mb/urbix/prod/directkitrest/v2
-```
+\`\`\`
 
 ---
 
@@ -238,7 +238,7 @@ private getApiBaseUrl(): string {
 
 ### 4.1 Estructura General de Ejecución
 
-```typescript
+\`\`\`typescript
 // lib/lemonway-client.ts líneas 326-459
 async executeAndUpdateLog(
   logId: number,
@@ -293,11 +293,11 @@ async executeAndUpdateLog(
 
   return { success, responseStatus, errorMessage }
 }
-```
+\`\`\`
 
 ### 4.2 Ejemplo 1: GET Transacciones (Query con parámetros)
 
-```typescript
+\`\`\`typescript
 // app/api/lemonway/sync-transactions/route.ts
 const client = new LemonwayClient(config)
 
@@ -329,11 +329,11 @@ const result = await client.executeAndUpdateLog(
 
 // URL generada:
 // https://sandbox-api.lemonway.fr/mb/urbix/dev/directkitrest/v2/transactions/GetWalletTransactions?startDate=1704067200&endDate=1704153600
-```
+\`\`\`
 
 ### 4.3 Ejemplo 2: POST - Crear Movimiento (Body JSON)
 
-```typescript
+\`\`\`typescript
 // app/api/lemonway/create-transaction/route.ts
 const logId = await client.logApiCall(
   "/transactions/SendMoney", // endpoint
@@ -372,7 +372,7 @@ const result = await client.executeAndUpdateLog(
 // Request generado:
 // POST https://sandbox-api.lemonway.fr/mb/urbix/dev/directkitrest/v2/transactions/SendMoney
 // Body: { "debitWallet": "123456", ... }
-```
+\`\`\`
 
 ---
 
@@ -380,7 +380,7 @@ const result = await client.executeAndUpdateLog(
 
 ### 5.1 Tabla de Mapeo: `lemonway_temp."MappedFields"`
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway_temp."MappedFields" (
   id SERIAL PRIMARY KEY,
   lemonway_field_name VARCHAR(255),
@@ -388,10 +388,10 @@ CREATE TABLE lemonway_temp."MappedFields" (
   data_type VARCHAR(50),
   transformation JSONB -- Cómo transformar el valor
 );
-```
+\`\`\`
 
 **Ejemplos de mappings:**
-```json
+\`\`\`json
 [
   {
     "lemonway_field": "debitWalletId",
@@ -412,11 +412,11 @@ CREATE TABLE lemonway_temp."MappedFields" (
     "transformation": { "from_unix_timestamp": true }
   }
 ]
-```
+\`\`\`
 
 ### 5.2 Transformación en Código
 
-```typescript
+\`\`\`typescript
 // lib/lemonway-type-mapper.ts
 export class LemonwayTypeMapper {
   static transformTransaction(lemonwayTx: LemonwayTransactionIn): TransactionProcessed {
@@ -431,7 +431,7 @@ export class LemonwayTypeMapper {
     }
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -439,13 +439,13 @@ export class LemonwayTypeMapper {
 
 **Si bien la configuración está en BD, estas variables de entorno se utilizan para inicializar:**
 
-```env
+\`\`\`env
 # Variables para PRIMERA configuración (script de setup)
 LEMONWAY_ENVIRONMENT=sandbox|production
 LEMONWAY_API_TOKEN=base64_encoded_oauth_token
 LEMONWAY_WALLET_ID=urbix_wallet_id_from_lemonway
 LEMONWAY_ENVIRONMENT_NAME=urbix
-```
+\`\`\`
 
 **Flujo:**
 1. Deploy de app
@@ -459,7 +459,7 @@ LEMONWAY_ENVIRONMENT_NAME=urbix
 
 ### 7.1 Implementación: Algoritmo de Cola Interna
 
-```typescript
+\`\`\`typescript
 // lib/lemonway-client.ts líneas 37-45
 private requestQueue: Array<{
   fn: () => Promise<any>
@@ -470,11 +470,11 @@ private activeRequests = 0
 private lastRequestTime = 0
 private maxConcurrentRequests = 3 // De BD: config.maxConcurrentRequests
 private minDelayMs = 1000 // De BD: config.minDelayBetweenRequestsMs
-```
+\`\`\`
 
 ### 7.2 Procesamiento de Cola
 
-```typescript
+\`\`\`typescript
 // Cuando añadir a cola:
 private async enqueueRequest<T>(fn: () => Promise<T>): Promise<T> {
   return new Promise((resolve, reject) => {
@@ -511,7 +511,7 @@ private async processQueue() {
     }
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -519,7 +519,7 @@ private async processQueue() {
 
 ### 8.1 Configuración de Reintentos: `public."LemonwayRetryConfig"`
 
-```sql
+\`\`\`sql
 CREATE TABLE "LemonwayRetryConfig" (
   id SERIAL PRIMARY KEY,
   max_retry_attempts INT DEFAULT 5,
@@ -529,11 +529,11 @@ CREATE TABLE "LemonwayRetryConfig" (
   max_backoff_seconds INT DEFAULT 300,
   manual_retry_enabled BOOLEAN DEFAULT true
 );
-```
+\`\`\`
 
 ### 8.2 Lógica de Reintentos
 
-```typescript
+\`\`\`typescript
 // lib/lemonway-retry-config.ts
 export async function getRetryConfig() {
   const result = await sql`SELECT * FROM "LemonwayRetryConfig" LIMIT 1`
@@ -561,7 +561,7 @@ if (exponentialBackoff) {
 // Reintento 3: 40s (5 * 2 * 2 * 2)
 // Reintento 4: 80s (5 * 2 * 2 * 2 * 2)
 // Reintento 5+: 300s (cap)
-```
+\`\`\`
 
 ---
 
@@ -569,7 +569,7 @@ if (exponentialBackoff) {
 
 ### 9.1 Visualizar Todas las Queries Ejecutadas
 
-```sql
+\`\`\`sql
 -- Ver últimas 20 queries
 SELECT 
   id,
@@ -595,11 +595,11 @@ SELECT
 FROM "LemonwayApiCallLog"
 WHERE success = false
 ORDER BY created_at DESC;
-```
+\`\`\`
 
 ### 9.2 Visualizar Estado de Reintentos
 
-```sql
+\`\`\`sql
 -- Llamadas pendientes de reintento
 SELECT 
   id,
@@ -621,17 +621,17 @@ SELECT
   error_message
 FROM "LemonwayApiCallLog"
 WHERE final_failure = true AND manual_retry_needed = true;
-```
+\`\`\`
 
 ### 9.3 Logs de Debug en Código
 
-```typescript
+\`\`\`typescript
 // En lemonway-client.ts se loguea:
 console.log("[v0] [Lemonway] getConfig - api_token exists:", !!config.api_token)
 console.log("[v0] [Lemonway] Bearer token obtained, expires at:", expiresAt)
 console.log("[v0] [Lemonway] API call logged with ID:", insertedId)
 console.log("[v0] Transacciones recibidas para log:", logId)
-```
+\`\`\`
 
 ---
 

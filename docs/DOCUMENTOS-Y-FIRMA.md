@@ -49,17 +49,17 @@ El **Sistema de Gestión de Documentos y Firma Electrónica** permite a la plata
 
 Todos los datos del módulo se almacenan en el schema `documentos` con las siguientes tablas:
 
-```sql
+\`\`\`sql
 documentos.document_type          -- Tipos de documentos
 documentos.document_version       -- Versiones de documentos
 documentos.signature_session      -- Sesiones de firma
 documentos.signed_document        -- Documentos firmados
 documentos.signature_verification  -- CSV de verificación
-```
+\`\`\`
 
 ### Estructura de Carpetas
 
-```
+\`\`\`
 app/
 ├── api/
 │   ├── admin/
@@ -107,7 +107,7 @@ scripts/
 ├── 130-create-documents-apis.sql         # Funciones SQL
 ├── 131-add-document-rbac.sql            # Permisos RBAC
 └── 135-add-handwritten-signature-column.sql  # Firma manuscrita
-```
+\`\`\`
 
 ---
 
@@ -117,7 +117,7 @@ scripts/
 
 Define los tipos de documentos disponibles en la plataforma.
 
-```sql
+\`\`\`sql
 CREATE TABLE documentos.document_type (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(100) NOT NULL UNIQUE,     -- Código único (ej: mandato_inversion)
@@ -130,7 +130,7 @@ CREATE TABLE documentos.document_type (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 **Campos clave:**
 - `requiere_firma`: Si es `true`, el documento necesita ser firmado por el inversor
@@ -141,7 +141,7 @@ CREATE TABLE documentos.document_type (
 
 Versiones de cada tipo de documento con control de estado.
 
-```sql
+\`\`\`sql
 CREATE TABLE documentos.document_version (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   document_type_id UUID NOT NULL REFERENCES documentos.document_type(id) ON DELETE CASCADE,
@@ -157,7 +157,7 @@ CREATE TABLE documentos.document_version (
   updated_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(document_type_id, version_number)
 );
-```
+\`\`\`
 
 **Estados:**
 - `borrador`: Editable, no disponible para firma
@@ -167,7 +167,7 @@ CREATE TABLE documentos.document_version (
 
 Sesiones de firma únicas para cada inversor y documento.
 
-```sql
+\`\`\`sql
 CREATE TABLE documentos.signature_session (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   inversor_id UUID NOT NULL REFERENCES investors."User"(id),
@@ -187,20 +187,20 @@ CREATE TABLE documentos.signature_session (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 **Flujo de estados:**
-```
+\`\`\`
 pendiente → firmado
           ↘ expirado
           ↘ cancelado
-```
+\`\`\`
 
 ### Tabla: `signed_document`
 
 Documentos firmados con todos los metadatos de verificación.
 
-```sql
+\`\`\`sql
 CREATE TABLE documentos.signed_document (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   signature_session_id UUID NOT NULL REFERENCES documentos.signature_session(id),
@@ -216,20 +216,20 @@ CREATE TABLE documentos.signed_document (
   fecha_expiracion TIMESTAMP,
   created_at TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 ### Tabla: `signature_verification`
 
 Registro CSV para verificación posterior de firmas.
 
-```sql
+\`\`\`sql
 CREATE TABLE documentos.signature_verification (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   signed_document_id UUID NOT NULL REFERENCES documentos.signed_document(id),
   verificacion_csv TEXT NOT NULL,          -- CSV con hash, fecha, email, etc.
   created_at TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 ---
 
@@ -247,12 +247,12 @@ CREATE TABLE documentos.signature_verification (
 - Formato de variables: `{{investors.User.column_name}}`
 
 **Ejemplo de uso:**
-```tsx
+\`\`\`tsx
 <RichTextEditor 
   value={documentContent}
   onChange={setDocumentContent}
 />
-```
+\`\`\`
 
 **Variables disponibles:**
 - `{{investors.User.email}}`
@@ -312,7 +312,7 @@ CREATE TABLE documentos.signature_verification (
 
 ### Flujo 1: Creación de Documento
 
-```
+\`\`\`
 Admin Dashboard → /dashboard/documents
          ↓
   Clic en "Crear Tipo de Documento"
@@ -348,11 +348,11 @@ Admin Dashboard → /dashboard/documents
   PATCH /api/admin/documents/versions/[id]
          ↓
   UPDATE status='publicado', publicado_en=NOW()
-```
+\`\`\`
 
 ### Flujo 2: Firma de Documento (Completo)
 
-```
+\`\`\`
 1. ADMIN: Crear sesión de firma (Testing o Producción)
    POST /api/admin/documents/testing/create-session
    Body: {
@@ -457,11 +457,11 @@ Admin Dashboard → /dashboard/documents
    Mostrar mensaje de éxito al inversor
    ↓
    Redirigir a /investor-portal/documents
-```
+\`\`\`
 
 ### Flujo 3: Testing de Firma
 
-```
+\`\`\`
 Admin → /dashboard/documents/testing
       ↓
 1. Seleccionar tipo de documento
@@ -514,7 +514,7 @@ Admin → /dashboard/documents/testing
      - Estado (pendiente/firmado/expirado)
      - Fecha creación
      - Acciones (ver/reenviar)
-```
+\`\`\`
 
 ---
 
@@ -523,7 +523,7 @@ Admin → /dashboard/documents/testing
 ### Admin - Tipos de Documentos
 
 **Listar Tipos**
-```
+\`\`\`
 GET /api/admin/documents/types
 Response: {
   types: [{
@@ -537,10 +537,10 @@ Response: {
     created_at: timestamp
   }]
 }
-```
+\`\`\`
 
 **Crear Tipo**
-```
+\`\`\`
 POST /api/admin/documents/types
 Body: {
   name: string,
@@ -551,25 +551,25 @@ Body: {
   dias_vigencia?: number
 }
 Response: { success: true, type: DocumentType }
-```
+\`\`\`
 
 **Actualizar Tipo**
-```
+\`\`\`
 PATCH /api/admin/documents/types/[id]
 Body: Partial<DocumentType>
 Response: { success: true }
-```
+\`\`\`
 
 **Eliminar Tipo**
-```
+\`\`\`
 DELETE /api/admin/documents/types/[id]
 Response: { success: true }
-```
+\`\`\`
 
 ### Admin - Versiones
 
 **Listar Versiones de un Tipo**
-```
+\`\`\`
 GET /api/admin/documents/versions?typeId=UUID
 Response: {
   versions: [{
@@ -583,10 +583,10 @@ Response: {
     created_at: timestamp
   }]
 }
-```
+\`\`\`
 
 **Crear Versión**
-```
+\`\`\`
 POST /api/admin/documents/versions
 Body: {
   document_type_id: UUID,
@@ -596,38 +596,38 @@ Body: {
   notas_version?: string
 }
 Response: { success: true, version: DocumentVersion }
-```
+\`\`\`
 
 **Actualizar Versión**
-```
+\`\`\`
 PATCH /api/admin/documents/versions/[id]
 Body: Partial<DocumentVersion>
 Response: { success: true }
-```
+\`\`\`
 
 **Publicar Versión**
-```
+\`\`\`
 POST /api/admin/documents/versions/[id]/publish
 Response: { 
   success: true, 
   version: DocumentVersion (status='publicado') 
 }
-```
+\`\`\`
 
 **Vista Previa con Inversor**
-```
+\`\`\`
 POST /api/admin/documents/versions/[id]/preview
 Body: { investorEmail: string }
 Response: {
   contenidoRenderizado: string,  // HTML con variables sustituidas
   variables: { [key: string]: any }
 }
-```
+\`\`\`
 
 ### Admin - Testing
 
 **Crear Sesión de Prueba**
-```
+\`\`\`
 POST /api/admin/documents/testing/create-session
 Body: {
   documentVersionId: UUID,
@@ -639,12 +639,12 @@ Response: {
   link: string,
   expires_at: timestamp
 }
-```
+\`\`\`
 
 ### Admin - Validación de Variables
 
 **Validar Variable**
-```
+\`\`\`
 POST /api/admin/documents/validate-variable
 Body: { columnName: string }
 Response: {
@@ -653,31 +653,31 @@ Response: {
   dataType?: string,
   error?: string
 }
-```
+\`\`\`
 
 ### Investors - Firma
 
 **Obtener Datos de Sesión**
-```
+\`\`\`
 GET /api/investors/documents/sign/[token]
 Response: {
   session: SignatureSession,
   document: DocumentVersion,
   investor: InvestorUser
 }
-```
+\`\`\`
 
 **Vista Previa de Documento**
-```
+\`\`\`
 GET /api/investors/documents/sign/[token]/preview
 Response: {
   contenidoRenderizado: string,
   variables: object
 }
-```
+\`\`\`
 
 **Enviar OTP**
-```
+\`\`\`
 POST /api/investors/documents/sign/otp/send
 Body: {
   sessionId: UUID,
@@ -688,10 +688,10 @@ Response: {
   sent: boolean,
   maskedDestination: string  // "j***@example.com"
 }
-```
+\`\`\`
 
 **Verificar OTP y Completar Firma**
-```
+\`\`\`
 POST /api/investors/documents/sign/otp/verify
 Body: {
   sessionId: UUID,
@@ -703,18 +703,18 @@ Response: {
   signedDocumentId?: UUID,
   error?: string
 }
-```
+\`\`\`
 
 ### Investors - Mis Documentos
 
 **Listar Documentos del Inversor**
-```
+\`\`\`
 GET /api/investors/documents
 Response: {
   pending: SignatureSession[],
   signed: SignedDocument[]
 }
-```
+\`\`\`
 
 ---
 
@@ -755,7 +755,7 @@ Response: {
 
 ### RBAC Permisos
 
-```sql
+\`\`\`sql
 -- Permisos necesarios
 documents:read
 documents:write
@@ -764,7 +764,7 @@ documents:publish
 documents:testing
 signatures:read
 signatures:write
-```
+\`\`\`
 
 **Roles:**
 - **SuperAdmin**: Todos los permisos
@@ -778,7 +778,7 @@ signatures:write
 
 ### Script SQL de Prueba
 
-```sql
+\`\`\`sql
 -- Verificar tipos de documentos existentes
 SELECT 
   id, 
@@ -830,7 +830,7 @@ JOIN investors."User" iu ON iu.id = sd.inversor_id
 JOIN documentos.document_version dv ON dv.id = sd.document_version_id
 JOIN documentos.document_type dt ON dt.id = dv.document_type_id
 ORDER BY sd.fecha_firma DESC;
-```
+\`\`\`
 
 ### Checklist de Testing
 

@@ -364,7 +364,7 @@ Ejecutar los siguientes scripts en orden:
 
 ## Datos de Prueba SQL
 
-```sql
+\`\`\`sql
 -- Crear usuarios de prueba
 INSERT INTO public."User" (id, email, name, is_supervisor) VALUES
 ('gestor1', 'gestor1@urbix.es', 'María García', false),
@@ -392,7 +392,7 @@ VALUES
 ('VINCULACION_PENDIENTE', 'Vincular wallet TEST_WALLET_001', 'Wallet sin cuenta virtual', 'MEDIA', 'VINCULACION_WALLETS', 'payment_account', 'TEST_WALLET_001', 'PENDIENTE', 'SISTEMA'),
 ('REVISION_KYC', 'Revisar documentación cliente', 'Documentos pendientes', 'ALTA', 'REVISION_KYC', 'payment_account', 'TEST_WALLET_002', 'PENDIENTE', 'admin'),
 ('VERIFICACION_SALDOS', 'Auditar saldos inconsistentes', 'Diferencia de 100 EUR', 'CRITICA', 'VERIFICACION_SALDOS', 'cuenta_virtual', gen_random_uuid()::TEXT, 'PENDIENTE', 'SISTEMA');
-```
+\`\`\`
 
 ---
 

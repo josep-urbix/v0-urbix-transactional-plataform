@@ -55,7 +55,7 @@ Consolidar TODA la gestión de Lemonway en un **panel administrativo centralizad
 
 ### 2.1 Estructura de Carpetas
 
-```
+\`\`\`
 app/dashboard/admin/lemonway/
 ├── page.tsx (orquestador principal)
 ├── layout.tsx (con sidebar integrado)
@@ -159,11 +159,11 @@ lib/lemonway/
 
 app/api/admin/lemonway/
 ├── [endpoints para cada sección - ver sección 4]
-```
+\`\`\`
 
 ### 2.2 Diseño de Capas
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────┐
 │         UI Layer (React Components)              │
 │  Dashboard tabs, forms, tables, charts, modals  │
@@ -193,7 +193,7 @@ app/api/admin/lemonway/
 │      Database Layer (Neon PostgreSQL)           │
 │  All tables, indexes, views, caching logic     │
 └─────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -203,7 +203,7 @@ app/api/admin/lemonway/
 
 #### Tabla 1: `lemonway.custom_queries`
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway.custom_queries (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
@@ -242,11 +242,11 @@ CREATE TABLE lemonway.custom_queries (
 CREATE INDEX idx_custom_queries_active ON lemonway.custom_queries(is_active)
   WHERE is_active = true;
 CREATE INDEX idx_custom_queries_method ON lemonway.custom_queries(method_name);
-```
+\`\`\`
 
 #### Tabla 2: `lemonway.custom_query_versions`
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway.custom_query_versions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
@@ -277,11 +277,11 @@ CREATE TABLE lemonway.custom_query_versions (
 
 CREATE INDEX idx_query_versions_active ON lemonway.custom_query_versions(query_id, is_active)
   WHERE is_active = true;
-```
+\`\`\`
 
 #### Tabla 3: `lemonway.operation_types`
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway.operation_types (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
@@ -318,11 +318,11 @@ CREATE TABLE lemonway.operation_types (
 CREATE INDEX idx_operation_types_enabled ON lemonway.operation_types(is_enabled)
   WHERE is_enabled = true;
 CREATE INDEX idx_operation_types_category ON lemonway.operation_types(category);
-```
+\`\`\`
 
 #### Tabla 4: `lemonway.api_call_queue`
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway.api_call_queue (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
@@ -360,11 +360,11 @@ CREATE TABLE lemonway.api_call_queue (
   INDEX idx_queue_priority_status (priority DESC, status, next_retry_at),
   INDEX idx_queue_status_retry (status, next_retry_at)
 );
-```
+\`\`\`
 
 #### Tabla 5: `lemonway.api_call_snapshots`
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway.api_call_snapshots (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
@@ -382,11 +382,11 @@ CREATE TABLE lemonway.api_call_snapshots (
   FOREIGN KEY (api_call_id) REFERENCES lemonway.api_call_queue(id) ON DELETE CASCADE,
   INDEX idx_snapshots_call (api_call_id)
 );
-```
+\`\`\`
 
 #### Tabla 6: `lemonway.test_environments`
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway.test_environments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
@@ -404,11 +404,11 @@ CREATE TABLE lemonway.test_environments (
   FOREIGN KEY (user_id) REFERENCES "User"(id),
   UNIQUE(user_id, environment_name)
 );
-```
+\`\`\`
 
 #### Tabla 7: `lemonway.rate_limit_buckets`
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway.rate_limit_buckets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   
@@ -422,13 +422,13 @@ CREATE TABLE lemonway.rate_limit_buckets (
   UNIQUE(user_id, bucket_key, reset_at),
   INDEX idx_rate_limit_reset (reset_at)
 );
-```
+\`\`\`
 
 ### 3.2 Columnas Nuevas en Tablas Existentes
 
 #### Modificación 1: `LemonwayApiCallLog`
 
-```sql
+\`\`\`sql
 -- Agregar columna de prioridad
 ALTER TABLE "LemonwayApiCallLog"
 ADD COLUMN priority VARCHAR(20) NOT NULL DEFAULT 'normal'
@@ -450,11 +450,11 @@ ADD COLUMN intent VARCHAR(50) DEFAULT 'unknown';
 -- Agregar columna de duración
 ALTER TABLE "LemonwayApiCallLog"
 ADD COLUMN duration_ms INT;
-```
+\`\`\`
 
 #### Modificación 2: `Permission`
 
-```sql
+\`\`\`sql
 -- Agregar 26 nuevos permisos Lemonway (ver sección 6.2)
 INSERT INTO "Permission" (resource, action, description)
 VALUES
@@ -467,7 +467,7 @@ VALUES
   ('lemonway:queries', 'edit', 'Editar queries personalizadas'),
   ('lemonway:queries', 'delete', 'Eliminar queries personalizadas'),
   -- ... (18 más, ver tabla completa en sección 6.2)
-```
+\`\`\`
 
 ---
 
@@ -488,7 +488,7 @@ VALUES
 **Propósito**: Obtener configuración actual de Lemonway
 **Permisos**: `lemonway:config:read`
 **Response**:
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -505,13 +505,13 @@ VALUES
     "lastTestAt": "2026-01-12T20:30:00Z"
   }
 }
-```
+\`\`\`
 
 #### PUT `/api/admin/lemonway/config`
 **Propósito**: Actualizar configuración de Lemonway
 **Permisos**: `lemonway:config:write`
 **Body**:
-```json
+\`\`\`json
 {
   "environment": "production",
   "walletId": "12345",
@@ -519,7 +519,7 @@ VALUES
   "minDelayBetweenRequestsMs": 500,
   "retryConfig": { ... }
 }
-```
+\`\`\`
 
 #### POST `/api/admin/lemonway/config/test`
 **Propósito**: Probar conexión a Lemonway
@@ -534,7 +534,7 @@ VALUES
 **Propósito**: Crear nueva custom query
 **Permisos**: `lemonway:queries:create`
 **Body**:
-```json
+\`\`\`json
 {
   "name": "Get Investor Transactions",
   "description": "Obtiene transacciones de inversor específico",
@@ -543,7 +543,7 @@ VALUES
   "filters": { "status": "COMPLETED" },
   "defaultPriority": "normal"
 }
-```
+\`\`\`
 
 #### PUT `/api/admin/lemonway/custom-queries/{id}`
 **Propósito**: Actualizar custom query (crea nueva versión)
@@ -582,7 +582,7 @@ VALUES
 **Propósito**: Obtener estado actual de colas
 **Permisos**: `lemonway:queue:read`
 **Response**:
-```json
+\`\`\`json
 {
   "success": true,
   "data": {
@@ -601,20 +601,20 @@ VALUES
     "health": { "status": "healthy|degraded|critical" }
   }
 }
-```
+\`\`\`
 
 #### GET `/api/admin/lemonway/api-explorer/test`
 **Propósito**: Ejecutar query en API Explorer con config centralizada
 **Permisos**: `lemonway:api-explorer:test`
 **Body**:
-```json
+\`\`\`json
 {
   "methodName": "GetWalletTransactions",
   "parameters": { "walletId": "123" },
   "dryRun": false,
   "queryId": null
 }
-```
+\`\`\`
 
 ---
 
@@ -622,7 +622,7 @@ VALUES
 
 ### 5.1 Estructura de Componentes
 
-```
+\`\`\`
 Dashboard principal (/dashboard/admin/lemonway)
 ├── Sidebar con 9 tabs
 ├── Header con breadcrumbs
@@ -684,7 +684,7 @@ Dashboard principal (/dashboard/admin/lemonway)
     ├── PerformanceCharts (latency, throughput)
     ├── AlertsDashboard
     └── LogsViewer (búsqueda + filtros)
-```
+\`\`\`
 
 ### 5.2 Mejoras de UX
 
@@ -750,7 +750,7 @@ Dashboard principal (/dashboard/admin/lemonway)
 
 ### 6.3 Implementación Técnica
 
-```typescript
+\`\`\`typescript
 // En cada endpoint
 const user = await requireAdmin(
   session,
@@ -765,7 +765,7 @@ const user = await requireAdmin(
 // 2. CREATE 4 roles en table "Role"
 // 3. INSERT RolePermission entries (104 total: 26 permisos × 4 roles)
 // 4. ASIGNAR roles a usuarios en table "UserRole"
-```
+\`\`\`
 
 ---
 
@@ -773,17 +773,17 @@ const user = await requireAdmin(
 
 ### 7.1 Arquitectura
 
-```
+\`\`\`
 Cola Dual FIFO con Priorización
 ├─ Cola URGENTE (FIFO)
 │  └─ Se procesa SIEMPRE primero
 └─ Cola NORMAL (FIFO)
    └─ Se procesa cuando no hay urgentes
-```
+\`\`\`
 
 ### 7.2 Determinación Automática de Prioridad
 
-```typescript
+\`\`\`typescript
 function determinePriority(
   operationType: OperationType,
   amount: number,
@@ -803,11 +803,11 @@ function determinePriority(
   // Default
   return 'normal'
 }
-```
+\`\`\`
 
 ### 7.3 Procesamiento
 
-```sql
+\`\`\`sql
 -- Nueva query que respeta priorización
 SELECT * FROM "LemonwayApiCallLog"
 WHERE retry_status = 'pending'
@@ -821,7 +821,7 @@ LIMIT 50;
 CREATE INDEX idx_queue_priority_fifo
 ON "LemonwayApiCallLog"(priority DESC, created_at ASC)
 WHERE retry_status = 'pending';
-```
+\`\`\`
 
 ### 7.4 Configuración por Prioridad
 
@@ -856,7 +856,7 @@ WHERE retry_status = 'pending';
 
 ### 8.2 Flujo de Ejecución
 
-```
+\`\`\`
 Usuario en tab "API Explorer"
   ↓
 Selecciona método (GET /api/admin/lemonway/api-explorer/methods)
@@ -889,7 +889,7 @@ Backend:
   8. Retorna response
   ↓
 Frontend muestra resultado + opción de comparar snapshots
-```
+\`\`\`
 
 ---
 
@@ -957,7 +957,7 @@ Frontend muestra resultado + opción de comparar snapshots
 
 ### 10.1 Flujo: Usuario crea Custom Query
 
-```
+\`\`\`
 1. LemonwayAdmin en tab "Custom Queries"
 2. Click "Nueva Query"
 3. Abre modal QueryEditor
@@ -972,11 +972,11 @@ Frontend muestra resultado + opción de comparar snapshots
    - AccessLog: "lemonway:queries:create - Exitoso"
 8. Query aparece en lista
 9. Próxima vez: dropdown de queries disponibles
-```
+\`\`\`
 
 ### 10.2 Flujo: Procesamiento de Cola Priorizada
 
-```
+\`\`\`
 Cron Job (cada 1 minuto): POST /api/cron/process-lemonway-queue
 
 1. SELECT * FROM LemonwayApiCallLog
@@ -1006,11 +1006,11 @@ Cron Job (cada 1 minuto): POST /api/cron/process-lemonway-queue
 5. INSERT en api_call_snapshots (para debugging)
 
 6. Si failure: enviar alerta a admin
-```
+\`\`\`
 
 ### 10.3 Flujo: Admin aprueba movimiento con prioridad automática
 
-```
+\`\`\`
 1. Movimiento importado llega a lemonway_temp.movimientos_cuenta
 2. Cron detecta: crear tarea APROBACION_MOVIMIENTO
 3. LemonwayOperator ve movimiento en tab "Movements"
@@ -1025,7 +1025,7 @@ Cron Job (cada 1 minuto): POST /api/cron/process-lemonway-queue
 8. Cron próximo lo procesa según prioridad
 9. INSERT en virtual_accounts.movimientos_cuenta
 10. AccessLog: movimiento aprobado
-```
+\`\`\`
 
 ---
 

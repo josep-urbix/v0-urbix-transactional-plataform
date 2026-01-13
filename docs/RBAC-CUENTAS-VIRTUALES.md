@@ -49,10 +49,10 @@ Puedes crear roles personalizados y asignarles permisos específicos desde la UI
 
 Para verificar que los permisos están correctamente configurados, ejecuta:
 
-```bash
+\`\`\`bash
 # Desde el dashboard de SQL o tu cliente PostgreSQL
 psql -f scripts/102-verify-virtual-accounts-permissions.sql
-```
+\`\`\`
 
 Esto mostrará:
 1. Lista de todos los permisos de Cuentas Virtuales
@@ -78,7 +78,7 @@ Las siguientes APIs verifican permisos antes de permitir acceso:
 
 El sistema de autenticación y autorización está centralizado en `lib/auth/`:
 
-```
+\`\`\`
 lib/auth/
 ├── index.ts        # Punto de entrada - exporta todas las funciones
 ├── types.ts        # Tipos TypeScript para roles, permisos y auditoría
@@ -87,13 +87,13 @@ lib/auth/
 ├── permissions.ts  # Permisos granulares desde BD con caché
 ├── audit.ts        # Logging de accesos permitidos/denegados
 └── middleware.ts   # Helpers para proteger APIs (requireAdmin, requirePermission)
-```
+\`\`\`
 
 ## Integración en el Código
 
 Para verificar permisos en nuevas funcionalidades:
 
-```typescript
+\`\`\`typescript
 import { getSession, hasPermission, isAdminRole, logAccess } from "@/lib/auth"
 
 export async function GET(request: Request) {
@@ -134,7 +134,7 @@ export async function GET(request: Request) {
   
   // Continuar con la lógica...
 }
-```
+\`\`\`
 
 ### Funciones Disponibles
 

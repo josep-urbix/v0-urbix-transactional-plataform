@@ -71,7 +71,7 @@
 
 ## Arquitectura de Capas
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────┐
 │                     PRESENTATION LAYER                       │
 │  ┌─────────────────────┐    ┌───────────────────────────┐  │
@@ -117,7 +117,7 @@
 │  │   CRM    │  │ Payments │  │   SMTP   │  │  OAuth   │   │
 │  └──────────┘  └────────────┘  └──────────┘  └──────────┘   │
 └─────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -233,7 +233,7 @@ Receptores de eventos externos.
 
 ### Flujo 1: Registro de Inversor
 
-```
+\`\`\`
 Usuario → /investor-portal/register
          ↓
   POST /api/investors/auth/register
@@ -251,11 +251,11 @@ Usuario → /investor-portal/register
   Retornar userId
          ↓
   Redirigir a /verify-email
-```
+\`\`\`
 
 ### Flujo 2: Procesamiento de Webhook Lemonway
 
-```
+\`\`\`
 Lemonway → POST /api/webhooks/lemonway
                  ↓
          Validar API key
@@ -277,11 +277,11 @@ Lemonway → POST /api/webhooks/lemonway
          Actualizar WebhookDelivery (success/error)
                  ↓
          Retornar 200 OK
-```
+\`\`\`
 
 ### Flujo 3: Ejecución de Workflow
 
-```
+\`\`\`
 Evento → POST /api/workflows/emit
               ↓
       Buscar workflows activos para evento
@@ -305,7 +305,7 @@ Evento → POST /api/workflows/emit
          └── No → Continuar
               ↓
       Actualizar WorkflowRun (completed)
-```
+\`\`\`
 
 ---
 
@@ -410,7 +410,7 @@ Evento → POST /api/workflows/emit
 - Verificación en middleware de API routes
 
 **Implementación:**
-```typescript
+\`\`\`typescript
 // Middleware de autorización
 export async function requirePermission(
   userId: string,
@@ -422,7 +422,7 @@ export async function requirePermission(
   if (!hasPermission) throw new UnauthorizedError()
   return true
 }
-```
+\`\`\`
 
 ### Seguridad de Webhooks
 
@@ -486,7 +486,7 @@ export async function requirePermission(
 
 ### CI/CD Pipeline
 
-```
+\`\`\`
 GitHub Push → Vercel Deploy
                   ↓
          Build Next.js app
@@ -498,7 +498,7 @@ GitHub Push → Vercel Deploy
          Invalidate Edge Cache
                   ↓
          Run smoke tests (futuro)
-```
+\`\`\`
 
 ### Environments
 
@@ -539,7 +539,7 @@ GitHub Push → Vercel Deploy
 
 ### Diagrama de Schemas de Base de Datos
 
-```
+\`\`\`
 ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
 │   public     │      │  investors   │      │  workflows   │
 ├──────────────┤      ├──────────────┤      ├──────────────┤
@@ -569,11 +569,11 @@ GitHub Push → Vercel Deploy
 │ TipoOperacion│      │ RetryQueue   │
 │ LemonwaySync │      │ FieldMapping │
 └──────────────┘      └──────────────┘
-```
+\`\`\`
 
 ### Diagrama de Componentes React
 
-```
+\`\`\`
 App Root
 ├── AdminLayout
 │   ├── DashboardNav (sidebar)
@@ -589,7 +589,7 @@ App Root
     ├── InvestorDashboard
     ├── InvestorSettings
     └── LoginForm / RegisterForm
-```
+\`\`\`
 
 ---
 

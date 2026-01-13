@@ -10,7 +10,7 @@ Sistema para importar transacciones desde Lemonway hacia tablas temporales del s
 
 ## 2. Arquitectura del Sistema
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         FRONTEND (UI)                                │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -119,7 +119,7 @@ Sistema para importar transacciones desde Lemonway hacia tablas temporales del s
 │   - Almacena request/response del endpoint Lemonway                │
 │   - Usado para retry sin re-llamar a Lemonway                      │
 └─────────────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -129,7 +129,7 @@ Sistema para importar transacciones desde Lemonway hacia tablas temporales del s
 
 #### Tabla: `import_runs`
 
-```sql
+\`\`\`sql
 CREATE TYPE import_status AS ENUM ('queued', 'processing', 'completed', 'failed', 'retrying');
 
 CREATE TABLE lemonway_temp.import_runs (
@@ -158,11 +158,11 @@ CREATE TABLE lemonway_temp.import_runs (
   INDEX idx_import_runs_cuenta_virtual (cuenta_virtual_id),
   INDEX idx_import_runs_created (created_at DESC)
 );
-```
+\`\`\`
 
 #### Tabla: `cuentas_virtuales`
 
-```sql
+\`\`\`sql
 CREATE TYPE cuenta_virtual_tipo AS ENUM ('INVERSOR', 'PROMOTOR', 'SISTEMA', 'COMISIONES');
 CREATE TYPE cuenta_virtual_estado AS ENUM ('ACTIVA', 'BLOQUEADA', 'CERRADA');
 
@@ -186,11 +186,11 @@ CREATE TABLE lemonway_temp.cuentas_virtuales (
   INDEX idx_cuentas_tipo (tipo),
   INDEX idx_cuentas_estado (estado)
 );
-```
+\`\`\`
 
 #### Tabla: `movimientos_cuenta`
 
-```sql
+\`\`\`sql
 CREATE TYPE movimiento_estado_importacion AS ENUM ('pendiente_revision', 'aprobado', 'rechazado');
 
 CREATE TABLE lemonway_temp.movimientos_cuenta (
@@ -222,11 +222,11 @@ CREATE TABLE lemonway_temp.movimientos_cuenta (
   INDEX idx_movimientos_estado (estado_importacion),
   INDEX idx_movimientos_lemonway_tx (lemonway_transaction_id)
 );
-```
+\`\`\`
 
 #### Tabla: `tipos_operacion_contable`
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway_temp.tipos_operacion_contable (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   codigo TEXT UNIQUE NOT NULL,
@@ -239,7 +239,7 @@ CREATE TABLE lemonway_temp.tipos_operacion_contable (
   INDEX idx_tipos_operacion_codigo (codigo),
   INDEX idx_tipos_operacion_activo (activo)
 );
-```
+\`\`\`
 
 ---
 
@@ -259,7 +259,7 @@ Basado en el análisis del código existente en `/dashboard/investors/wallets` y
 
 ### 4.2 Algoritmo de Mapeo
 
-```typescript
+\`\`\`typescript
 async function mapAccountIdToCuentaVirtual(lemonwayAccountId: string): Promise<string | null> {
   // Opción 1: Buscar en payment_accounts
   const paymentAccount = await sql`
@@ -304,13 +304,13 @@ async function mapAccountIdToCuentaVirtual(lemonwayAccountId: string): Promise<s
   
   return tempCuenta[0].id;
 }
-```
+\`\`\`
 
 ### 4.5 Estructura Real de la Respuesta de Lemonway
 
 #### Respuesta del endpoint GET /accounts/{accountId}/transactions
 
-```json
+\`\`\`json
 {
   "transactions": {
     "value": [
@@ -350,7 +350,7 @@ async function mapAccountIdToCuentaVirtual(lemonwayAccountId: string): Promise<s
     ]
   }
 }
-```
+\`\`\`
 
 #### Mapeo de Campos Lemonway → movimientos_cuenta
 
@@ -369,7 +369,7 @@ async function mapAccountIdToCuentaVirtual(lemonwayAccountId: string): Promise<s
 
 #### Tipos TypeScript para la Respuesta
 
-```typescript
+\`\`\`typescript
 interface LemonwayTransactionResponse {
   transactions: {
     value: Array<{
@@ -407,7 +407,7 @@ interface LemonwayTransactionResponse {
     }>
   };
 }
-```
+\`\`\`
 
 ---
 
@@ -415,7 +415,7 @@ interface LemonwayTransactionResponse {
 
 ### 5.1 Agregar método a `lib/lemonway-client.ts`
 
-```typescript
+\`\`\`typescript
 /**
  * Obtiene transacciones de una cuenta específica con filtros de fecha
  * GET /accounts/{accountId}/transactions
@@ -449,13 +449,13 @@ async getAccountTransactions(
     retry_status: 'pending'
   });
 }
-```
+\`\`\`
 
 ### 5.2 Agregar a API Explorer
 
 Insertar en `lemonway_api_methods`:
 
-```sql
+\`\`\`sql
 INSERT INTO lemonway_api_methods (
   name,
   endpoint,
@@ -479,7 +479,7 @@ INSERT INTO lemonway_api_methods (
   '{"accountId":"12345","dateFrom":"2024-01-01T00:00:00Z","dateTo":"2024-01-31T23:59:59Z","limit":100}',
   '{"transactions":[{"id":"tx_123","amount":1500,"currency":"EUR","date":1761995913}],"total":45}'
 );
-```
+\`\`\`
 
 ---
 
@@ -488,23 +488,23 @@ INSERT INTO lemonway_api_methods (
 ### 6.1 POST `/api/lemonway-imports/start`
 
 **Request:**
-```json
+\`\`\`json
 {
   "accountId": "12345",
   "dateFrom": "2024-01-01T00:00:00Z",
   "dateTo": "2024-01-31T23:59:59Z"
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "success": true,
   "runId": "uuid-here",
   "status": "queued",
   "message": "Importación encolada correctamente"
 }
-```
+\`\`\`
 
 **Flujo:**
 1. Validar params (accountId, dateFrom, dateTo)
@@ -517,7 +517,7 @@ INSERT INTO lemonway_api_methods (
 ### 6.2 GET `/api/lemonway-imports/[runId]`
 
 **Response:**
-```json
+\`\`\`json
 {
   "id": "uuid",
   "accountId": "12345",
@@ -534,7 +534,7 @@ INSERT INTO lemonway_api_methods (
     }
   ]
 }
-```
+\`\`\`
 
 ### 6.3 POST `/api/lemonway-imports/[runId]/retry`
 
@@ -555,7 +555,7 @@ INSERT INTO lemonway_api_methods (
 - `page`, `limit`
 
 **Response:**
-```json
+\`\`\`json
 {
   "movimientos": [...],
   "pagination": {
@@ -565,7 +565,7 @@ INSERT INTO lemonway_api_methods (
     "totalPages": 10
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -575,7 +575,7 @@ INSERT INTO lemonway_api_methods (
 
 **Opción implementada:** Next.js API Route con locking manual usando base de datos
 
-```
+\`\`\`
 POST /api/lemonway-imports/start
   ↓
   Inserta import_run (status: queued)
@@ -592,11 +592,11 @@ POST /api/lemonway-imports/process-next
   4. Guarda en LemonwayApiCallLog
   5. Procesa transacciones
   6. UPDATE status='completed'
-```
+\`\`\`
 
 ### 7.2 Worker Implementation - Actualizado con estructura real
 
-```typescript
+\`\`\`typescript
 // app/api/lemonway-imports/process-next/route.ts
 
 export async function POST(request: NextRequest) {
@@ -740,11 +740,11 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-```
+\`\`\`
 
 ### 7.3 Cron Job Activador
 
-```typescript
+\`\`\`typescript
 // app/api/cron/process-lemonway-imports/route.ts
 
 export async function GET(request: NextRequest) {
@@ -768,7 +768,7 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({ processed: results.length, results });
 }
-```
+\`\`\`
 
 ---
 
@@ -780,7 +780,7 @@ export async function GET(request: NextRequest) {
 
 **Componente:** `components/lemonway-api/transaction-importer.tsx`
 
-```tsx
+\`\`\`tsx
 "use client"
 
 import { useState } from 'react'
@@ -887,7 +887,7 @@ export function TransactionImporter() {
     </Card>
   )
 }
-```
+\`\`\`
 
 ### 8.2 Página de Historial de Importaciones
 
@@ -917,7 +917,7 @@ export function TransactionImporter() {
 
 ## 9. Permisos RBAC
 
-```typescript
+\`\`\`typescript
 // lib/auth/permissions.ts
 
 export const LEMONWAY_IMPORT_PERMISSIONS = [
@@ -958,7 +958,7 @@ export const LEMONWAY_IMPORT_PERMISSIONS = [
     description: 'Rechazar movimientos'
   }
 ];
-```
+\`\`\`
 
 **Asignación:**
 - `superadmin`: Todos los permisos
@@ -975,7 +975,7 @@ export const LEMONWAY_IMPORT_PERMISSIONS = [
 
 **Futuro:** Crear tabla de mapeo:
 
-```sql
+\`\`\`sql
 CREATE TABLE lemonway_temp.transaction_type_mapping (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   lemonway_transaction_type TEXT NOT NULL,
@@ -983,7 +983,7 @@ CREATE TABLE lemonway_temp.transaction_type_mapping (
   tipo_operacion_id UUID NOT NULL REFERENCES lemonway_temp.tipos_operacion_contable(id),
   created_at TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 **Ejemplos:**
 - Lemonway `type: "money_in"` + `direction: "credit"` → `tipo_operacion_id: "INGRESO_INVERSOR"`

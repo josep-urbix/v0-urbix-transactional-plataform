@@ -28,14 +28,14 @@
 ### OPCIÓN 2 DEBE:
 
 #### 1. **NO DUPLICAR el LemonwayClient**
-```typescript
+\`\`\`typescript
 // ❌ MAL: Crear nuevo cliente duplicado
 const client = new LemonwayClient(config)
 
 // ✅ BIEN: Reutilizar desde donde ya existe
 import LemonwayClient from "@/lib/lemonway-client"
 const client = new LemonwayClient(await LemonwayClient.getConfig())
-```
+\`\`\`
 
 #### 2. **Exponer Métodos Disponibles en Tab "Available Methods"**
 - Mostrar los 10 métodos ya implementados
@@ -45,7 +45,7 @@ const client = new LemonwayClient(await LemonwayClient.getConfig())
 
 #### 3. **Custom Queries = Presets de Métodos**
 No son queries nuevas, sino **configuraciones guardadas** de los 10 métodos existentes:
-```typescript
+\`\`\`typescript
 interface CustomQuery {
   id: string
   name: string              // e.g., "Get all wallet transactions daily"
@@ -58,16 +58,16 @@ interface CustomQuery {
   created_by: string
   is_favorite: boolean
 }
-```
+\`\`\`
 
 #### 4. **Integrar Queue FIFO Dual**
 Cada ejecución de cualquier método pasa por la cola:
-```typescript
+\`\`\`typescript
 // Cuando ejecuta getBearerToken() o getTransactions()
 → Enqueue en lemonway_request_queue (URGENT o NORMAL)
 → Procesador FIFO dual elige si ejecutar ahora o esperar
 → Registro en LemonwayApiCallLog (ya existe)
-```
+\`\`\`
 
 #### 5. **Reutilizar Auditoría Existente**
 - NO crear nueva tabla de auditoría
@@ -75,14 +75,14 @@ Cada ejecución de cualquier método pasa por la cola:
 - Dashboard OPCIÓN 2 solo **visualiza** lo que ya existe
 
 #### 6. **Sandbox Mode = Dry-Run sin Afectar BD**
-```typescript
+\`\`\`typescript
 // Cuando sandbox = true:
 → Ejecutar LemonwayClient como normalmente
 → Capturar response
 → NO guardar en MovimientosCuenta
 → Mostrar respuesta en modo preview
 → Guardar en tabla separada: lemonway_sandbox_history
-```
+\`\`\`
 
 ---
 
@@ -109,7 +109,7 @@ Cada ejecución de cualquier método pasa por la cola:
 ## FLUJOS END-TO-END: Cómo Funciona sin Duplicar
 
 ### FLUJO 1: Ejecutar Método Existente
-```
+\`\`\`
 Usuario en OPCIÓN 2
   ↓
 Selecciona "Get Wallet Transactions" (método existente)
@@ -127,10 +127,10 @@ Llama LemonwayClient.getTransactions()
 Resultado registrado en LemonwayApiCallLog (auditoria actual)
   ↓
 Mostrar respuesta en UI con visualización mejorada
-```
+\`\`\`
 
 ### FLUJO 2: Guardar como Custom Query (Preset)
-```
+\`\`\`
 Usuario ejecutó getBearerToken() con params específicos
   ↓
 Click "Save as Preset"
@@ -142,10 +142,10 @@ Guardar en lemonway_custom_queries:
   - created_by: user_id
   ↓
 Próximas ejecuciones reutilizan estos parámetros
-```
+\`\`\`
 
 ### FLUJO 3: Ejecución desde Sandbox (Dry-run)
-```
+\`\`\`
 Usuario quiere testear getTransactions sin afectar BD
   ↓
 Toggle "Sandbox Mode" ON
@@ -157,14 +157,14 @@ Response se captura pero NO se guarda en MovimientosCuenta
 Registra en lemonway_sandbox_history para auditoría
   ↓
 Mostrar diferencias si es segunda ejecución
-```
+\`\`\`
 
 ---
 
 ## CAMBIOS EN CÓDIGO: Mínimos y Quirúrgicos
 
 ### En `app/api/admin/lemonway/queue/route.ts`:
-```typescript
+\`\`\`typescript
 // REUTILIZAR: LemonwayClient existente
 import { LemonwayClient } from "@/lib/lemonway-client"
 
@@ -173,10 +173,10 @@ import { LemonwayClient } from "@/lib/lemonway-client"
 2. Obtiene método desde LemonwayApiMethod
 3. Ejecuta LemonwayClient[metodName](params)
 4. El cliente maneja OAuth, retry, logging automáticamente
-```
+\`\`\`
 
 ### En `components/lemonway-admin/api-explorer-tab.tsx`:
-```typescript
+\`\`\`typescript
 // REUTILIZAR: Lista de métodos de BD
 const methods = await fetch('/api/lemonway-api/methods')
   .then(r => r.json())
@@ -185,7 +185,7 @@ const methods = await fetch('/api/lemonway-api/methods')
 // REUTILIZAR: Schemas de request/response para generar formularios
 const schema = method.request_schema // Ya tiene structure!
 const formComponent = generateFormFromSchema(schema)
-```
+\`\`\`
 
 ---
 

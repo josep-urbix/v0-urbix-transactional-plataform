@@ -32,7 +32,7 @@ Cuando un usuario configura en `/dashboard/lemonway-config`:
 
 ### 2.1 Arquitectura Propuesta
 
-```
+\`\`\`
 /dashboard/admin/lemonway/
 ├── tabs principales
 │   ├── Overview (resumen, KPIs)
@@ -44,12 +44,12 @@ Cuando un usuario configura en `/dashboard/lemonway-config`:
 │   ├── Import History (historial de importaciones)
 │   ├── Movements (movimientos temporales)
 │   └── Monitoring (stats, health, alerts)
-```
+\`\`\`
 
 ### 2.2 Cómo API Explorer Usaría Configuración Centralizada
 
 #### En la UI (Frontend)
-```
+\`\`\`
 ┌─────────────────────────────────────────────┐
 │  Panel Admin Lemonway > API Explorer Tab    │
 ├─────────────────────────────────────────────┤
@@ -89,13 +89,13 @@ Cuando un usuario configura en `/dashboard/lemonway-config`:
 │  └────────────────────────────────────────┘ │
 │                                             │
 └─────────────────────────────────────────────┘
-```
+\`\`\`
 
 #### En el Backend (API)
 
 **New Endpoint: `GET /api/admin/lemonway/api-explorer/test`**
 
-```typescript
+\`\`\`typescript
 // 1. Obtiene config centralizada (auth, rate limit, etc)
 config = await getActiveLemonwayConfig()
 
@@ -115,7 +115,7 @@ response = await client.executeMethod(methodName, parameters)
 // (con intent=api_explorer para tracking)
 
 return response
-```
+\`\`\`
 
 ---
 
@@ -123,7 +123,7 @@ return response
 
 ### 3.1 Flujo de Datos: API Explorer Integrado
 
-```
+\`\`\`
 Usuario en /dashboard/admin/lemonway
     ↓
 Selecciona método en API Explorer tab
@@ -147,7 +147,7 @@ Backend:
       WITH intent='api_explorer'
     ↓
 Response + historial actualizado
-```
+\`\`\`
 
 ### 3.2 Configuración Reutilizada en API Explorer
 
@@ -196,7 +196,7 @@ Response + historial actualizado
 
 ### 5.1 Nueva Tabla BD
 
-```sql
+\`\`\`sql
 CREATE TABLE "LemonwayCustomQuery" (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -221,11 +221,11 @@ CREATE TABLE "LemonwayOperationType" (
   method_mapping JSONB,  -- mapping a métodos Lemonway
   created_at TIMESTAMP DEFAULT NOW()
 );
-```
+\`\`\`
 
 ### 5.2 Nuevos Endpoints
 
-```
+\`\`\`
 GET    /api/admin/lemonway/api-explorer/methods
        → Métodos disponibles + esquema
 
@@ -249,7 +249,7 @@ POST   /api/admin/lemonway/operation-types
 
 GET    /api/admin/lemonway/config/active
        → Config actual activa (todo integrado)
-```
+\`\`\`
 
 ### 5.3 Cambios en Componentes
 
@@ -269,7 +269,7 @@ GET    /api/admin/lemonway/config/active
 
 ### Escenario: Un Admin Testea Nueva Query
 
-```
+\`\`\`
 1. Va a /dashboard/admin/lemonway
 2. Click en tab "API Explorer"
 3. Ve métodos Lemonway (cargados con config actual)
@@ -291,7 +291,7 @@ GET    /api/admin/lemonway/config/active
    - Ejecutar de nuevo con 1 click
    - Usarla en workflows/crons
    - Exportar/compartir con equipo
-```
+\`\`\`
 
 ---
 
@@ -326,7 +326,7 @@ GET    /api/admin/lemonway/config/active
 
 ## 8. MOCKUP ASCII: Tab API Explorer en Opción 2
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────────────────┐
 │ Dashboard Admin Lemonway                                             │
 ├──────────────────────────────────────────────────────────────────────┤
@@ -372,7 +372,7 @@ GET    /api/admin/lemonway/config/active
 │  └──────────────────────────┘   │                                  │ │
 │                                │                                  │ │
 └──────────────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 

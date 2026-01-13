@@ -47,7 +47,7 @@ El **Módulo BPM** es un motor de flujos de trabajo (workflow engine) completo q
 
 ## 🏗️ ARQUITECTURA GENERAL
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────┐
 │                      WORKFLOW ENGINE                         │
 ├─────────────────────────────────────────────────────────────┤
@@ -82,7 +82,7 @@ El **Módulo BPM** es un motor de flujos de trabajo (workflow engine) completo q
    │ (Schema  │             │              │      │          │
    │ workflows│             └──────────────┘      └──────────┘
    └──────────┘
-```
+\`\`\`
 
 ### Componentes Principales
 
@@ -158,9 +158,9 @@ Eventos que disparan la ejecución de un workflow.
 - `idx_trigger_workflow` ON `(workflow_id)`
 
 **Ejemplo de `filter_expression`:**
-```javascript
+\`\`\`javascript
 {{trigger.amount}} > 1000 && {{trigger.status}} == "paid"
-```
+\`\`\`
 
 ---
 
@@ -317,7 +317,7 @@ Registro de tipos de eventos conocidos.
 
 ### Flujo de Ejecución Completo
 
-```
+\`\`\`
 1. emitEvent(eventName, payload)
    ├─→ Busca workflows ACTIVE con triggers que coincidan
    ├─→ Evalúa filter_expression (si existe)
@@ -357,7 +357,7 @@ Registro de tipos de eventos conocidos.
 4. resumeWaitingWorkflows() [Cron Job]
    ├─→ Busca WorkflowRun con status=WAITING y resume_at <= NOW
    └─→ Para cada una: executeWorkflowRun(runId)
-```
+\`\`\`
 
 ### Funciones Principales
 
@@ -370,15 +370,15 @@ Punto de entrada principal. Dispara workflows que escuchan el evento.
 - `payload`: Datos del evento
 
 **Retorna:**
-```typescript
+\`\`\`typescript
 {
   triggered: number       // Número de workflows disparados
   runIds: string[]        // IDs de las ejecuciones creadas
 }
-```
+\`\`\`
 
 **Ejemplo:**
-```typescript
+\`\`\`typescript
 import { emitEvent } from "@/lib/workflow-engine/engine"
 
 await emitEvent("USER_REGISTERED", {
@@ -386,7 +386,7 @@ await emitEvent("USER_REGISTERED", {
   name: "John Doe",
   userId: "uuid"
 })
-```
+\`\`\`
 
 ---
 
@@ -436,9 +436,9 @@ Ejecuta un paso individual con lógica de reintentos.
    - Va a next_step_on_success
 
 **Fórmula de backoff:**
-```
+\`\`\`
 delay = retry_delay_ms * Math.pow(retry_backoff_multiplier, attempt_number - 1)
-```
+\`\`\`
 
 **Ejemplo con default:**
 - Intento 1: 1000ms
@@ -469,7 +469,7 @@ Reanuda workflows en pausa. **Debe ejecutarse periódicamente (cron).**
 
 El contexto es un objeto JSON que se pasa entre pasos y almacena datos.
 
-```typescript
+\`\`\`typescript
 interface WorkflowContext {
   // Payload original del evento
   trigger: Record<string, unknown>
@@ -492,11 +492,11 @@ interface WorkflowContext {
     current_step?: string
   }
 }
-```
+\`\`\`
 
 **Ejemplo de contexto después de 2 pasos:**
 
-```json
+\`\`\`json
 {
   "trigger": {
     "email": "user@example.com",
@@ -522,7 +522,7 @@ interface WorkflowContext {
     "current_step": "send_email"
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -535,7 +535,7 @@ interface WorkflowContext {
 Llama a endpoints internos de la aplicación.
 
 **Config:**
-```typescript
+\`\`\`typescript
 {
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
   urlPath: string                          // Soporta templates
@@ -544,10 +544,10 @@ Llama a endpoints internos de la aplicación.
   expectedStatusCodes?: number[]           // Default: [200, 201, 204]
   outputVariable?: string                  // Para guardar en variables
 }
-```
+\`\`\`
 
 **Ejemplo:**
-```json
+\`\`\`json
 {
   "method": "POST",
   "urlPath": "/api/investments",
@@ -558,10 +558,10 @@ Llama a endpoints internos de la aplicación.
   },
   "expectedStatusCodes": [200, 201]
 }
-```
+\`\`\`
 
 **Output:**
-```json
+\`\`\`json
 {
   "status": 201,
   "data": {
@@ -569,7 +569,7 @@ Llama a endpoints internos de la aplicación.
     "createdAt": "2026-01-08T10:00:00Z"
   }
 }
-```
+\`\`\`
 
 **Headers automáticos:**
 - `Content-Type: application/json`
@@ -586,7 +586,7 @@ Llama a endpoints internos de la aplicación.
 Llama a webhooks externos.
 
 **Config:**
-```typescript
+\`\`\`typescript
 {
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH"
   url: string                              // URL completa, soporta templates
@@ -595,10 +595,10 @@ Llama a webhooks externos.
   expectedStatusCodes?: number[]           // Default: [200, 201, 202, 204]
   timeoutMs?: number                       // Default: 30000 (30s)
 }
-```
+\`\`\`
 
 **Ejemplo:**
-```json
+\`\`\`json
 {
   "method": "POST",
   "url": "https://hooks.slack.com/services/{{variables.slackWebhook}}",
@@ -607,7 +607,7 @@ Llama a webhooks externos.
   },
   "timeoutMs": 10000
 }
-```
+\`\`\`
 
 **Diferencias con CALL_INTERNAL_API:**
 - Permite URLs externas completas
@@ -624,7 +624,7 @@ Llama a webhooks externos.
 Envía emails usando plantillas de Gmail.
 
 **Config:**
-```typescript
+\`\`\`typescript
 {
   templateKey: string                     // Key de la plantilla en DB
   toTemplate: string                      // Email destino, soporta templates
@@ -632,10 +632,10 @@ Envía emails usando plantillas de Gmail.
   bccTemplate?: string                    // BCC opcional
   variablesTemplate?: Record<string, string>  // Variables para la plantilla
 }
-```
+\`\`\`
 
 **Ejemplo:**
-```json
+\`\`\`json
 {
   "templateKey": "welcome",
   "toTemplate": "{{trigger.email}}",
@@ -644,16 +644,16 @@ Envía emails usando plantillas de Gmail.
     "loginUrl": "https://urbix.es/login"
   }
 }
-```
+\`\`\`
 
 **Output:**
-```json
+\`\`\`json
 {
   "messageId": "<CABz...@mail.gmail.com>",
   "threadId": "18d3f...",
   "emailSendId": "uuid"
 }
-```
+\`\`\`
 
 **Retriable:**
 - ✅ Errores de conexión o temporales
@@ -666,19 +666,19 @@ Envía emails usando plantillas de Gmail.
 Pausa la ejecución del workflow.
 
 **Config:**
-```typescript
+\`\`\`typescript
 {
   delayMs?: number       // Milisegundos (para delays cortos)
   delayISO?: string      // ISO 8601 duration (ej: "PT1H" = 1 hora)
 }
-```
+\`\`\`
 
 **Comportamiento:**
 - **Delay < 30s**: Espera inline (no cambia status a WAITING)
 - **Delay >= 30s**: Marca workflow como WAITING, programa resume_at
 
 **Ejemplos:**
-```json
+\`\`\`json
 // Pausa de 5 segundos
 { "delayMs": 5000 }
 
@@ -690,15 +690,15 @@ Pausa la ejecución del workflow.
 
 // Pausa de 1 hora 30 minutos
 { "delayISO": "PT1H30M" }
-```
+\`\`\`
 
 **Output:**
-```json
+\`\`\`json
 {
   "delayMs": 3600000,
   "scheduled": true  // o "waited": true si inline
 }
-```
+\`\`\`
 
 **Formato ISO 8601 Duration:**
 - `P` = Period
@@ -715,13 +715,13 @@ Pausa la ejecución del workflow.
 Bifurca la ejecución según una condición.
 
 **Config:**
-```typescript
+\`\`\`typescript
 {
   conditionExpression: string    // Expresión booleana
   next_step_if_true: string      // Step key si true
   next_step_if_false: string     // Step key si false
 }
-```
+\`\`\`
 
 **Operadores soportados:**
 - Comparación: `==`, `!=`, `>`, `<`, `>=`, `<=`
@@ -729,7 +729,7 @@ Bifurca la ejecución según una condición.
 - Paréntesis para agrupación
 
 **Ejemplos:**
-```json
+\`\`\`json
 // Simple
 {
   "conditionExpression": "{{trigger.amount}} > 1000",
@@ -743,16 +743,16 @@ Bifurca la ejecución según una condición.
   "next_step_if_true": "escalate",
   "next_step_if_false": "continue_normal"
 }
-```
+\`\`\`
 
 **Output:**
-```json
+\`\`\`json
 {
   "conditionResult": true,
   "nextStep": "send_high_value_alert",
   "expression": "{{trigger.amount}} > 1000"
 }
-```
+\`\`\`
 
 **Nota:** Este paso sobrescribe el `next_step_on_success` del paso en la configuración del workflow.
 
@@ -763,15 +763,15 @@ Bifurca la ejecución según una condición.
 Define o actualiza variables en el contexto.
 
 **Config:**
-```typescript
+\`\`\`typescript
 {
   variableName: string                    // Nombre de la variable
   valueTemplate: string | Record<string, any>  // Valor, soporta templates
 }
-```
+\`\`\`
 
 **Ejemplos:**
-```json
+\`\`\`json
 // Variable simple
 {
   "variableName": "userId",
@@ -793,21 +793,21 @@ Define o actualiza variables en el contexto.
     "tier": "{{steps.check_tier.data.tier}}"
   }
 }
-```
+\`\`\`
 
 **Output:**
-```json
+\`\`\`json
 {
   "variableName": "userId",
   "value": "123"
 }
-```
+\`\`\`
 
 **Uso posterior:**
-```
+\`\`\`
 {{variables.userId}}
 {{variables.userInfo.email}}
-```
+\`\`\`
 
 ---
 
@@ -816,15 +816,15 @@ Define o actualiza variables en el contexto.
 Registra mensajes para debugging y auditoría.
 
 **Config:**
-```typescript
+\`\`\`typescript
 {
   message: string                 // Mensaje, soporta templates
   level?: "info" | "warn" | "error" | "debug"  // Default: "info"
 }
-```
+\`\`\`
 
 **Ejemplos:**
-```json
+\`\`\`json
 {
   "message": "Usuario {{trigger.email}} registrado exitosamente",
   "level": "info"
@@ -834,19 +834,19 @@ Registra mensajes para debugging y auditoría.
   "message": "Inversión {{variables.investmentId}} creada con monto €{{trigger.amount}}",
   "level": "info"
 }
-```
+\`\`\`
 
 **Comportamiento:**
 - Escribe en `console.log/warn/error/debug`
 - También guarda en `integrations.lemonway_transactions_log` para persistencia
 
 **Output:**
-```json
+\`\`\`json
 {
   "message": "Usuario user@example.com registrado exitosamente",
   "level": "info"
 }
-```
+\`\`\`
 
 **Retriable:** NO (nunca falla el workflow)
 
@@ -876,13 +876,13 @@ Sintaxis: `{{path.to.value}}`
 
 Procesa plantillas de texto.
 
-```typescript
+\`\`\`typescript
 const result = processStringTemplate(
   "Hola {{trigger.name}}, tu inversión {{variables.investmentId}} fue creada",
   context
 )
 // "Hola John Doe, tu inversión INV-123 fue creada"
-```
+\`\`\`
 
 ---
 
@@ -890,7 +890,7 @@ const result = processStringTemplate(
 
 Procesa plantillas en objetos y arrays recursivamente.
 
-```typescript
+\`\`\`typescript
 const result = processObjectTemplate({
   userId: "{{trigger.userId}}",
   email: "{{trigger.email}}",
@@ -900,19 +900,19 @@ const result = processObjectTemplate({
     runId: "{{_meta.workflow_run_id}}"
   }
 }, context)
-```
+\`\`\`
 
 **Comportamiento especial:**
 - Si una cadena es **solo** una variable (`{{var}}`), retorna el valor original (preserva tipo)
 - Si tiene texto mezclado, retorna string
 
-```typescript
+\`\`\`typescript
 // Preserva tipo
 "{{trigger.amount}}" → 1000 (number)
 
 // Convierte a string
 "Amount: {{trigger.amount}}" → "Amount: 1000" (string)
-```
+\`\`\`
 
 ---
 
@@ -920,7 +920,7 @@ const result = processObjectTemplate({
 
 Evalúa expresiones booleanas.
 
-```typescript
+\`\`\`typescript
 evaluateCondition("{{trigger.amount}} > 1000", context)
 // true or false
 
@@ -928,7 +928,7 @@ evaluateCondition(
   "{{trigger.status}} == 'paid' && {{trigger.amount}} >= 500",
   context
 )
-```
+\`\`\`
 
 **Operadores:**
 - `==`, `!=`: Igualdad
@@ -943,13 +943,13 @@ evaluateCondition(
 
 Convierte duración ISO 8601 a milisegundos.
 
-```typescript
+\`\`\`typescript
 parseISODuration("PT1H")      // 3600000 (1 hora)
 parseISODuration("PT30M")     // 1800000 (30 minutos)
 parseISODuration("PT1H30M")   // 5400000 (1.5 horas)
 parseISODuration("P1D")       // 86400000 (1 día)
 parseISODuration("PT5S")      // 5000 (5 segundos)
-```
+\`\`\`
 
 ---
 
@@ -971,7 +971,7 @@ Lista todos los workflows.
 - `offset`: Paginación (default: 0)
 
 **Response:**
-```json
+\`\`\`json
 {
   "workflows": [
     {
@@ -993,7 +993,7 @@ Lista todos los workflows.
   "limit": 50,
   "offset": 0
 }
-```
+\`\`\`
 
 ---
 
@@ -1002,7 +1002,7 @@ Lista todos los workflows.
 Crea un nuevo workflow.
 
 **Body:**
-```json
+\`\`\`json
 {
   "name": "Welcome Workflow",
   "description": "Send welcome email to new users",
@@ -1035,7 +1035,7 @@ Crea un nuevo workflow.
   ],
   "canvas_data": {}
 }
-```
+\`\`\`
 
 **Response:** Workflow creado con triggers y steps.
 
@@ -1046,14 +1046,14 @@ Crea un nuevo workflow.
 Obtiene un workflow específico con triggers y steps.
 
 **Response:**
-```json
+\`\`\`json
 {
   "id": "uuid",
   "name": "...",
   "triggers": [...],
   "steps": [...]
 }
-```
+\`\`\`
 
 ---
 
@@ -1081,12 +1081,12 @@ Activa un workflow.
 - `entry_step_key` debe existir en los steps
 
 **Response:**
-```json
+\`\`\`json
 {
   "id": "uuid",
   "status": "ACTIVE"
 }
-```
+\`\`\`
 
 ---
 
@@ -1116,7 +1116,7 @@ Lista todas las ejecuciones (todas los workflows).
 - `offset`: Default 0
 
 **Response:**
-```json
+\`\`\`json
 {
   "runs": [
     {
@@ -1133,7 +1133,7 @@ Lista todas las ejecuciones (todas los workflows).
   "limit": 50,
   "offset": 0
 }
-```
+\`\`\`
 
 ---
 
@@ -1148,7 +1148,7 @@ Lista ejecuciones de un workflow específico.
 Obtiene detalle completo de una ejecución.
 
 **Response:**
-```json
+\`\`\`json
 {
   "id": "uuid",
   "workflow_id": "uuid",
@@ -1175,7 +1175,7 @@ Obtiene detalle completo de una ejecución.
     }
   ]
 }
-```
+\`\`\`
 
 ---
 
@@ -1190,7 +1190,7 @@ Cancela una ejecución (solo si está PENDING, RUNNING o WAITING).
 Dispara workflows que escuchan un evento.
 
 **Body:**
-```json
+\`\`\`json
 {
   "eventName": "USER_REGISTERED",
   "payload": {
@@ -1199,15 +1199,15 @@ Dispara workflows que escuchan un evento.
     "userId": "123"
   }
 }
-```
+\`\`\`
 
 **Response:**
-```json
+\`\`\`json
 {
   "triggered": 2,
   "runIds": ["uuid1", "uuid2"]
 }
-```
+\`\`\`
 
 ---
 
@@ -1216,7 +1216,7 @@ Dispara workflows que escuchan un evento.
 Lista eventos conocidos con conteo de workflows activos.
 
 **Response:**
-```json
+\`\`\`json
 {
   "events": [
     {
@@ -1231,7 +1231,7 @@ Lista eventos conocidos con conteo de workflows activos.
     }
   ]
 }
-```
+\`\`\`
 
 ---
 
@@ -1240,7 +1240,7 @@ Lista eventos conocidos con conteo de workflows activos.
 Crea o actualiza un evento.
 
 **Body:**
-```json
+\`\`\`json
 {
   "name": "CUSTOM_EVENT",
   "description": "My custom event",
@@ -1253,7 +1253,7 @@ Crea o actualiza un evento.
     }
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -1378,7 +1378,7 @@ Gestión de eventos disponibles.
 
 #### Desde código (TypeScript):
 
-```typescript
+\`\`\`typescript
 import { emitEvent } from "@/lib/workflow-engine/engine"
 
 // Simple
@@ -1397,11 +1397,11 @@ await emitEvent("INVESTMENT_CREATED", {
   currency: "EUR",
   status: "pending"
 })
-```
+\`\`\`
 
 #### Desde API (HTTP):
 
-```bash
+\`\`\`bash
 curl -X POST https://urbix.es/api/workflows/emit \
   -H "Content-Type: application/json" \
   -d '{
@@ -1411,7 +1411,7 @@ curl -X POST https://urbix.es/api/workflows/emit \
       "name": "John Doe"
     }
   }'
-```
+\`\`\`
 
 ---
 
@@ -1421,7 +1421,7 @@ Permiten ejecutar workflows solo si el payload cumple condiciones.
 
 **Ejemplo:**
 
-```javascript
+\`\`\`javascript
 // Solo inversiones > €500
 {{trigger.amount}} > 500
 
@@ -1430,16 +1430,16 @@ Permiten ejecutar workflows solo si el payload cumple condiciones.
 
 // Combinación
 {{trigger.amount}} > 1000 && {{trigger.status}} == "paid"
-```
+\`\`\`
 
 **Uso en trigger:**
-```json
+\`\`\`json
 {
   "event_name": "INVESTMENT_CREATED",
   "filter_expression": "{{trigger.amount}} >= 1000",
   "description": "Solo inversiones grandes"
 }
-```
+\`\`\`
 
 ---
 
@@ -1447,7 +1447,7 @@ Permiten ejecutar workflows solo si el payload cumple condiciones.
 
 ### Ejemplo 1: Welcome Email Simple
 
-```json
+\`\`\`json
 {
   "name": "Welcome Email",
   "entry_step_key": "send_email",
@@ -1471,13 +1471,13 @@ Permiten ejecutar workflows solo si el payload cumple condiciones.
     }
   ]
 }
-```
+\`\`\`
 
 ---
 
 ### Ejemplo 2: Investment Processing con Conditional
 
-```json
+\`\`\`json
 {
   "name": "Process Investment",
   "entry_step_key": "check_amount",
@@ -1535,13 +1535,13 @@ Permiten ejecutar workflows solo si el payload cumple condiciones.
     }
   ]
 }
-```
+\`\`\`
 
 ---
 
 ### Ejemplo 3: KYC Approval con Delay
 
-```json
+\`\`\`json
 {
   "name": "KYC Approval Process",
   "entry_step_key": "delay_check",
@@ -1600,13 +1600,13 @@ Permiten ejecutar workflows solo si el payload cumple condiciones.
     }
   ]
 }
-```
+\`\`\`
 
 ---
 
 ### Ejemplo 4: Error Handling con Retry
 
-```json
+\`\`\`json
 {
   "name": "Sync to External System",
   "entry_step_key": "sync_data",
@@ -1668,7 +1668,7 @@ Permiten ejecutar workflows solo si el payload cumple condiciones.
     }
   ]
 }
-```
+\`\`\`
 
 ---
 
@@ -1683,7 +1683,7 @@ Permiten ejecutar workflows solo si el payload cumple condiciones.
 4. Evento no se está emitiendo correctamente
 
 **Soluciones:**
-```sql
+\`\`\`sql
 -- Verificar status
 SELECT id, name, status FROM workflows."Workflow" WHERE name = 'My Workflow';
 
@@ -1694,7 +1694,7 @@ SELECT * FROM workflows."WorkflowTrigger" WHERE workflow_id = 'uuid';
 SELECT * FROM workflows."WorkflowRun" 
 WHERE workflow_id = 'uuid' 
 ORDER BY started_at DESC LIMIT 10;
-```
+\`\`\`
 
 ---
 
@@ -1707,7 +1707,7 @@ ORDER BY started_at DESC LIMIT 10;
 4. Credenciales inválidas
 
 **Soluciones:**
-```sql
+\`\`\`sql
 -- Ver detalles del fallo
 SELECT 
   sr.step_key,
@@ -1721,7 +1721,7 @@ ORDER BY sr.started_at;
 
 -- Ver contexto de la ejecución
 SELECT context FROM workflows."WorkflowRun" WHERE id = 'run-uuid';
-```
+\`\`\`
 
 **Tips:**
 - Revisa que las variables existan en el contexto
@@ -1738,7 +1738,7 @@ SELECT context FROM workflows."WorkflowRun" WHERE id = 'run-uuid';
 **Solución:**
 Configurar cron job:
 
-```typescript
+\`\`\`typescript
 // app/api/cron/resume-workflows/route.ts
 import { resumeWaitingWorkflows } from "@/lib/workflow-engine/engine"
 
@@ -1753,10 +1753,10 @@ export async function GET(request: Request) {
   
   return Response.json({ success: true })
 }
-```
+\`\`\`
 
 **Configurar en Vercel (vercel.json):**
-```json
+\`\`\`json
 {
   "crons": [
     {
@@ -1765,7 +1765,7 @@ export async function GET(request: Request) {
     }
   ]
 }
-```
+\`\`\`
 
 ---
 
@@ -1775,20 +1775,20 @@ export async function GET(request: Request) {
 
 1. **Índices** - Ya creados en el schema
 2. **Limitar ejecuciones antiguas**:
-```sql
+\`\`\`sql
 -- Eliminar runs completados más de 30 días
 DELETE FROM workflows."WorkflowRun" 
 WHERE status = 'COMPLETED' 
 AND finished_at < NOW() - INTERVAL '30 days';
-```
+\`\`\`
 
 3. **Particionar tabla** (para volúmenes muy altos):
-```sql
+\`\`\`sql
 -- Particionar WorkflowRun por mes
 CREATE TABLE workflows."WorkflowRun_2026_01" 
 PARTITION OF workflows."WorkflowRun"
 FOR VALUES FROM ('2026-01-01') TO ('2026-02-01');
-```
+\`\`\`
 
 ---
 
@@ -1800,7 +1800,7 @@ FOR VALUES FROM ('2026-01-01') TO ('2026-02-01');
 - Limitar máximo de pasos ejecutados
 
 **Detección:**
-```sql
+\`\`\`sql
 -- Buscar runs con muchos step_runs
 SELECT 
   r.id,
@@ -1812,7 +1812,7 @@ JOIN workflows."WorkflowStepRun" sr ON sr.workflow_run_id = r.id
 GROUP BY r.id, r.workflow_id, r.status
 HAVING COUNT(sr.id) > 50
 ORDER BY step_count DESC;
-```
+\`\`\`
 
 **Solución:**
 - Cancelar manualmente: `DELETE /api/workflows/{id}/runs/{runId}`
@@ -1824,7 +1824,7 @@ ORDER BY step_count DESC;
 
 ### Queries útiles
 
-```sql
+\`\`\`sql
 -- Top workflows por ejecuciones
 SELECT 
   w.id,
@@ -1872,7 +1872,7 @@ FROM workflows."WorkflowRun" r
 JOIN workflows."Workflow" w ON w.id = r.workflow_id
 WHERE r.status IN ('RUNNING', 'WAITING')
 ORDER BY r.started_at;
-```
+\`\`\`
 
 ---
 

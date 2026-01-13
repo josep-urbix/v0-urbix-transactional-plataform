@@ -81,7 +81,7 @@
 - **Necesidad**: Crear queries reutilizables para casos específicos
 - **Ubicación Ideal**: Integrar con API Explorer (nueva tab) o página separada
 - **Datos a Guardar**:
-  ```json
+  \`\`\`json
   {
     "id": "uuid",
     "name": "Get Investor Transactions",
@@ -93,14 +93,14 @@
     "created_by": "admin@urbix.es",
     "created_at": "2026-01-12T..."
   }
-  ```
+  \`\`\`
 
 ### 2.2 Gestión de Tipos de Operación
 - **Estado**: NO EXISTE
 - **Necesidad**: Definir tipos de movimientos (transferencia, compra, venta, etc.)
 - **Relacionado con**: `lemonway_temp.movimientos_cuenta.operation_type`
 - **Datos a Guardar**:
-  ```json
+  \`\`\`json
   {
     "id": "uuid",
     "code": "TRANSFERENCIA_ENTRADA",
@@ -111,7 +111,7 @@
     "requires_approval": true,
     "notification_template_id": "uuid"
   }
-  ```
+  \`\`\`
 
 ### 2.3 Gestión de Métodos Lemonway
 - **Estado**: Parcialmente existe (lista en API Explorer)
@@ -143,7 +143,7 @@
 
 **Nueva URL base**: `/dashboard/admin/lemonway`
 
-```
+\`\`\`
 /dashboard/admin/lemonway/
 ├── page.tsx                    # Dashboard KPIs (home)
 ├── config/
@@ -174,22 +174,22 @@
 │   └── page.tsx                # API Explorer (actual)
 └── logs/
     └── page.tsx                # Logs de integración
-```
+\`\`\`
 
 ### 3.2 Navegación Interna (Tabs Principal)
 
 **En `/dashboard/admin/lemonway`** tabs principal:
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────┐
 │ [Home] [Configuración] [Métodos] [Queries] [Operaciones]│
 │ [Webhooks] [Importaciones] [Explorer] [Logs]            │
 └─────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 O mejor: **Menu lateral collapsible**:
 
-```
+\`\`\`
 ADMIN LEMONWAY
 ├─ 📊 Dashboard KPIs
 ├─ ⚙️ Configuración
@@ -200,12 +200,12 @@ ADMIN LEMONWAY
 ├─ 📥 Importaciones
 ├─ 🧪 API Explorer
 └─ 📋 Logs
-```
+\`\`\`
 
 ### 3.3 Cambios en el Sidebar Actual
 
 **Antes** (Integraciones > Lemonway):
-```
+\`\`\`
 Lemonway
 ├─ Transacciones
 ├─ Webhooks
@@ -213,24 +213,24 @@ Lemonway
 ├─ Importaciones
 ├─ Movimientos Temp
 └─ Configuración
-```
+\`\`\`
 
 **Después** (Integraciones > Lemonway):
-```
+\`\`\`
 Lemonway
 ├─ Transacciones
 ├─ Admin Panel  ← Nueva entrada que lleva a /dashboard/admin/lemonway
 └─ Movimientos Temp
-```
+\`\`\`
 
 O **mejor**: Reorganizar por acceso:
 
-```
+\`\`\`
 Lemonway
 ├─ Transacciones (público)
 ├─ Movimientos Temp (admin)
 └─ Admin Settings (admin) ← Nuevo, agrupa todo lo admin
-```
+\`\`\`
 
 ---
 
@@ -238,7 +238,7 @@ Lemonway
 
 ### 4.1 Componentes a REUTILIZAR
 
-```
+\`\`\`
 ✅ REUTILIZAR EXISTENTES:
 ├─ LemonwayConfigForm (70% del código)
 ├─ LemonwayApiExplorer (100% del código)
@@ -247,11 +247,11 @@ Lemonway
 ├─ LemonwayCallHistory (100% del código)
 ├─ FieldMappingsCrud (100% del código)
 └─ Componentes UI: Tabs, Card, Button, Input, Select, etc.
-```
+\`\`\`
 
 ### 4.2 Nuevos Componentes a CREAR
 
-```
+\`\`\`
 🆕 CREAR NUEVOS:
 ├─ LemonwayAdminDashboard (Page wrapper + tabs)
 ├─ LemonwayKpiDashboard (Stats, gráficos)
@@ -262,11 +262,11 @@ Lemonway
 ├─ LemonwayOperationTypesCrud (Listado + CRUD)
 ├─ LemonwayOperationTypeForm (Crear/editar tipo)
 └─ LemonwayLogsViewer (Ver logs filtrados)
-```
+\`\`\`
 
 ### 4.3 Nuevos Endpoints API a CREAR
 
-```
+\`\`\`
 🆕 ENDPOINTS NECESARIOS:
 ├─ GET/POST /api/admin/lemonway/methods
 ├─ GET/PUT/DELETE /api/admin/lemonway/methods/[id]
@@ -276,11 +276,11 @@ Lemonway
 ├─ GET/PUT/DELETE /api/admin/lemonway/operation-types/[id]
 ├─ GET /api/admin/lemonway/stats (KPIs)
 └─ GET /api/admin/lemonway/logs
-```
+\`\`\`
 
 ### 4.4 Nuevas Tablas BD (SQL)
 
-```sql
+\`\`\`sql
 🆕 TABLAS NUEVAS:
 ├─ lemonway.queries
 │  └─ id, name, method_id, description, params, is_public, created_by
@@ -288,11 +288,11 @@ Lemonway
 │  └─ id, code, name, category, affects_balance, requires_approval
 └─ lemonway.api_methods (ya existe, pero agregar campos)
    └─ Agregar: category, request_schema, response_schema
-```
+\`\`\`
 
 ### 4.5 Rutas a CREAR
 
-```
+\`\`\`
 📁 NUEVAS RUTAS:
 app/dashboard/admin/
 ├─ lemonway/
@@ -309,7 +309,7 @@ app/dashboard/admin/
 │  ├─ imports/page.tsx            # Reutilizar imports
 │  ├─ explorer/page.tsx           # Reutilizar API explorer
 │  └─ logs/page.tsx               # Nuevo
-```
+\`\`\`
 
 ---
 

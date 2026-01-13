@@ -20,12 +20,12 @@ Verificar que cada transacción:
 **Pasos**:
 1. Ejecutar una importación pequeña (ej: 1-3 cuentas, 1 día de datos)
 2. Verificar que aparezcan logs en `LemonwayApiCallLog`:
-   ```sql
+   \`\`\`sql
    SELECT COUNT(*), retry_status, response_status 
    FROM "LemonwayApiCallLog" 
    WHERE endpoint = '/import-transactions' 
    GROUP BY retry_status, response_status;
-   ```
+   \`\`\`
 3. Esperado: Logs con `retry_status = 'pending'` y `response_status = null`
 4. Verificar que en `lemonway_temp.movimientos_cuenta` haya 0 movimientos (no debe guardar directamente)
 
@@ -51,12 +51,12 @@ Verificar que cada transacción:
 **Pasos**:
 1. Esperar 2-3 minutos (intervalo del cron: */2 * * * *)
 2. Revisar en BD:
-   ```sql
+   \`\`\`sql
    SELECT COUNT(*), retry_status, response_status 
    FROM "LemonwayApiCallLog" 
    WHERE endpoint = '/import-transactions' 
    GROUP BY retry_status, response_status;
-   ```
+   \`\`\`
 3. Esperado: Los logs pasen de `'pending'` a `'completed'`
 4. Revisar en dashboard: Los logs deben mostrar estado "completed"
 
@@ -69,10 +69,10 @@ Verificar que cada transacción:
 
 **Pasos**:
 1. Después de que los logs se procesen (Fase 3):
-   ```sql
+   \`\`\`sql
    SELECT COUNT(*) FROM lemonway_temp.movimientos_cuenta 
    WHERE import_run_id = '[IMPORT_ID]';
-   ```
+   \`\`\`
 2. Esperado: Movimientos guardados (igual cantidad que transacciones)
 3. Verificar campos: `cuenta_virtual_id`, `lemonway_transaction_id`, `import_run_id`, etc.
 
@@ -98,11 +98,11 @@ Verificar que cada transacción:
 
 **Pasos**:
 1. En una importación posterior, si hay errores:
-   ```sql
+   \`\`\`sql
    SELECT id, retry_count, error_message, retry_status 
    FROM "LemonwayApiCallLog" 
    WHERE endpoint = '/import-transactions' AND retry_count > 0;
-   ```
+   \`\`\`
 2. Verificar que `retry_count` incremente en cada reintento
 3. Verificar que finalmente cambien a `'completed'` o `'failed_max_retries'`
 
@@ -134,7 +134,7 @@ Verificar que cada transacción:
 
 ## Comandos SQL Útiles para Debug
 
-```sql
+\`\`\`sql
 -- Ver estado actual de logs
 SELECT COUNT(*), retry_status, response_status 
 FROM "LemonwayApiCallLog" 
@@ -156,7 +156,7 @@ ORDER BY created_at DESC LIMIT 5;
 SELECT id, status, total_transactions, imported_transactions, created_at 
 FROM lemonway_temp.import_runs 
 ORDER BY created_at DESC LIMIT 5;
-```
+\`\`\`
 
 ## Notas Importantes
 

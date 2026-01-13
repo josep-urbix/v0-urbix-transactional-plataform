@@ -2,7 +2,7 @@
 
 ### 3.3 Esquema Virtual Accounts (Cuentas Virtuales)
 
-```sql
+\`\`\`sql
 virtual_accounts.cuentas_virtuales
   ├─ id (UUID, PK)
   ├─ inversion_id (UUID, FK inversiones.inversion)
@@ -28,11 +28,11 @@ virtual_accounts.movimientos_cuenta
   ├─ descripcion (text)
   ├─ created_at (timestamp)
   └─ processed_at (timestamp)
-```
+\`\`\`
 
 ### 3.4 Esquema Tasks (Gestión de Tareas)
 
-```sql
+\`\`\`sql
 tasks.process_templates
   ├─ id (UUID)
   ├─ nombre (string) -- "Verificación KYC", "Aprobación Movimiento"
@@ -99,11 +99,11 @@ tasks.sla_config
   ├─ escalation_level_3 (UUID, FK public.User, nullable)
   ├─ created_at (timestamp)
   └─ updated_at (timestamp)
-```
+\`\`\`
 
 ### 3.5 Esquema Inversiones
 
-```sql
+\`\`\`sql
 inversiones.inversion
   ├─ id (UUID, PK)
   ├─ investor_id (UUID, FK investors.User)
@@ -124,11 +124,11 @@ inversiones.inversion_status_history
   ├─ razon_cambio (string, nullable)
   ├─ timestamp (timestamp)
   └─ changed_by (UUID, FK public.User)
-```
+\`\`\`
 
 ### 3.6 Esquema Documentos (Firma Digital)
 
-```sql
+\`\`\`sql
 documentos.document_template
   ├─ id (UUID)
   ├─ nombre (string)
@@ -159,11 +159,11 @@ documentos.signed_document
   ├─ signature_metadata (jsonb) -- Fecha, hora, IP, device
   ├─ signed_at (timestamp)
   └─ archivado_at (timestamp, nullable)
-```
+\`\`\`
 
 ### 3.7 Esquema Lemonway (Importación de Movimientos)
 
-```sql
+\`\`\`sql
 lemonway_temp.movimientos_cuenta
   ├─ id (UUID, PK)
   ├─ lemonway_transaction_id (string, unique)
@@ -191,11 +191,11 @@ public.LemonwayApiCallLog
   ├─ duration_ms (integer)
   ├─ llamado_por (UUID, FK public.User)
   └─ created_at (timestamp)
-```
+\`\`\`
 
 ### 3.8 Esquema Workflows (Motor de Procesos)
 
-```sql
+\`\`\`sql
 workflows.workflow_definition
   ├─ id (UUID)
   ├─ nombre (string)
@@ -224,7 +224,7 @@ workflows.workflow_execution_log
   ├─ resultado (jsonb)
   ├─ timestamp (timestamp)
   └─ duration_ms (integer)
-```
+\`\`\`
 
 ---
 
@@ -310,7 +310,7 @@ workflows.workflow_execution_log
 
 ### 5.1 Inversión End-to-End
 
-```
+\`\`\`
 PASO 1: Registro Inversor (Portal Público)
 ├─ POST /api/investors/auth/register
 ├─ Create investors.User (estado=REGISTRO_INCOMPLETO)
@@ -404,7 +404,7 @@ PASO 13: Notificación a Inversor
 ├─ Email con resumen de inversión
 ├─ Dashboard muestra saldo y movimientos
 └─ Inversor puede ver historial completo
-```
+\`\`\`
 
 ---
 

@@ -5,7 +5,7 @@
 ### 6.1 Autenticación Multi-Layer
 
 **Capa 1: Credenciales**
-```typescript
+\`\`\`typescript
 // Login workflow
 1. POST /api/auth/login { email, password }
 2. Hash password con bcrypt
@@ -18,10 +18,10 @@
    a. Incrementar LoginAttempt.failure_count
    b. Si > 5 intentos: bloquear cuenta 1 hora
    c. Generar AccessLog (allowed=false, reason="Invalid credentials")
-```
+\`\`\`
 
 **Capa 2: 2FA (TOTP)**
-```typescript
+\`\`\`typescript
 // Setup 2FA
 1. POST /api/auth/2fa/setup
 2. Generar secret TOTP con speakeasy
@@ -39,10 +39,10 @@
    b. POST /api/auth/2fa/verify { tempToken, code }
    c. Verificar TOTP
    d. Si válido: create Session real
-```
+\`\`\`
 
 **Capa 3: Session Management**
-```typescript
+\`\`\`typescript
 // Session token
 sessionToken = crypto.randomBytes(32).toString('hex')
 refreshToken = crypto.randomBytes(32).toString('hex')
@@ -62,12 +62,12 @@ public.Session {
 4. Validar que refreshToken existe y es válido
 5. Generar nuevo sessionToken
 6. Return nuevo token
-```
+\`\`\`
 
 ### 6.2 RBAC (Role-Based Access Control)
 
 **Jerarquía de Roles**
-```
+\`\`\`
 SUPERADMIN (1)
 ├─ Permiso: * (acceso total)
 ├─ RolePermissions: [todos los recursos]
@@ -90,10 +90,10 @@ USER (N)
 INVESTOR (N) - Portal público
 ├─ Permisos: investors:profile, documents:sign
 └─ Solo acceso a datos propios
-```
+\`\`\`
 
 **Verificación de Permisos**
-```typescript
+\`\`\`typescript
 // En cada endpoint
 const user = await requireAdmin(session, "resource:action", request)
 
@@ -143,33 +143,33 @@ async function requireAdmin(session, permission, request) {
     throw ForbiddenError()
   }
 }
-```
+\`\`\`
 
 ### 6.3 Auditoría Completa
 
 **AccessLog** - Todos los accesos
-```sql
+\`\`\`sql
 SELECT * FROM public.AccessLog
 WHERE timestamp > NOW() - INTERVAL '7 days'
   AND (allowed = false OR resource LIKE '%:delete%')
 ORDER BY timestamp DESC
-```
+\`\`\`
 
 **UserAuditLog** - Cambios de datos críticos
-```sql
+\`\`\`sql
 -- Ejemplo: cambio de rol
 SELECT * FROM public.UserAuditLog
 WHERE tabla_afectada = 'User'
   AND campo_cambiado = 'role'
   AND timestamp > NOW() - INTERVAL '30 days'
-```
+\`\`\`
 
 **SQLLog** - Queries ejecutadas (en producción, deshabilitado)
-```sql
+\`\`\`sql
 SELECT * FROM public.SQLLog
 WHERE query LIKE '%DELETE%' OR query LIKE '%DROP%'
 ORDER BY timestamp DESC
-```
+\`\`\`
 
 ---
 
@@ -178,7 +178,7 @@ ORDER BY timestamp DESC
 ### 7.1 Lemonway Integration
 
 **Configuración**
-```typescript
+\`\`\`typescript
 // lib/lemonway/config.ts
 const config = {
   api_url: 'https://api-sandbox.lemonway.fr/rest/v1/json',
@@ -188,10 +188,10 @@ const config = {
   max_retries: 5,
   retry_delays: [1000, 2000, 4000, 8000, 16000] // exponencial
 }
-```
+\`\`\`
 
 **Operaciones Críticas**
-```typescript
+\`\`\`typescript
 // GetWallets - Obtener datos del wallet
 GET /api/lemonway/GetWallets
 ├─ Input: wallet_id
@@ -219,10 +219,10 @@ GET /api/lemonway/GetBalance
 ├─ Respuesta: { available, blocked, total }
 ├─ Cache: 1 min
 └─ Usado por: dashboard inversores
-```
+\`\`\`
 
 **Retry Logic**
-```typescript
+\`\`\`typescript
 // Si falla una llamada a Lemonway:
 1. Registrar en LemonwayApiCallLog (error_message)
 2. Esperar delay[retry_count] ms
@@ -232,12 +232,12 @@ GET /api/lemonway/GetBalance
    b. Notificar admin por email
    c. Crear Task: "ERROR_LEMONWAY_API"
    d. Manual retry disponible desde admin
-```
+\`\`\`
 
 ### 7.2 HubSpot Integration
 
 **Sync de Contactos**
-```typescript
+\`\`\`typescript
 // POST /api/hubspot/sync-contacts
 1. Obtener todos inversores de BD
 2. For each investor:
@@ -247,10 +247,10 @@ GET /api/lemonway/GetBalance
    d. Mapeo: name → firstname+lastname, email → email
 3. Log en HubSpotSyncLog
 4. Enviar reporte a admin
-```
+\`\`\`
 
 **Webhook: Meetings Updated**
-```typescript
+\`\`\`typescript
 // POST /api/hubspot/meetings/webhook
 1. Signature verification (HubSpot secret)
 2. Parse: { contact_id, meeting_date, meeting_link }
@@ -260,22 +260,22 @@ GET /api/lemonway/GetBalance
    b. Guardar Google Meet link en contexto
    c. Trigger workflow: investment.meeting_scheduled
 5. Log en WebhookLog
-```
+\`\`\`
 
 ### 7.3 Stripe Integration
 
 **Payment Intent**
-```typescript
+\`\`\`typescript
 // POST /api/stripe/payment-intent
 1. Input: { investment_id, amount_cents }
 2. Create payment intent: stripe.paymentIntents.create()
 3. Response: { client_secret, payment_intent_id }
 4. Storage: payment_intent_id en inversiones.inversion.stripe_pi_id
 5. Return clientSecret al frontend
-```
+\`\`\`
 
 **Webhook: payment_intent.succeeded**
-```typescript
+\`\`\`typescript
 // POST /api/webhooks/stripe
 1. Signature verification (Stripe secret)
 2. Parse payment_intent
@@ -286,12 +286,12 @@ GET /api/lemonway/GetBalance
 5. Create inversiones.inversion_status_history
 6. Trigger: investment.confirmed
 7. Workflow: crear virtual account
-```
+\`\`\`
 
 ### 7.4 Email Service (SMTP)
 
 **Configuración**
-```typescript
+\`\`\`typescript
 // Stored in emails.email_config table
 {
   smtp_host: string
@@ -301,10 +301,10 @@ GET /api/lemonway/GetBalance
   from_email: string
   from_name: string
 }
-```
+\`\`\`
 
 **Sending Workflow**
-```typescript
+\`\`\`typescript
 // POST /api/emails/send
 1. Obtener template de emails.email_templates
 2. Reemplazar variables: {{ investor_name }}, {{ amount }}
@@ -313,7 +313,7 @@ GET /api/lemonway/GetBalance
 5. Store en emails.email_sends: { recipient, template, status }
 6. Si falla: retry 3 veces con delay exponencial
 7. Log en emails.email_sends con error_message
-```
+\`\`\`
 
 **Templates Disponibles**
 - BIENVENIDA_INVERSOR
@@ -331,7 +331,7 @@ GET /api/lemonway/GetBalance
 ### 8.1 Procesos Automáticos
 
 **Cada 5 minutos**
-```typescript
+\`\`\`typescript
 POST /api/cron/process-lemonway-imports (con CRON_SECRET)
 1. Obtener fecha de último import
 2. For each virtual account:
@@ -343,10 +343,10 @@ POST /api/cron/process-lemonway-imports (con CRON_SECRET)
    a. Create Task: APROBACION_MOVIMIENTO
    b. Asignar al manager correspondiente
 4. Log duración en CronJobExecution
-```
+\`\`\`
 
 **Cada 10 minutos**
-```typescript
+\`\`\`typescript
 POST /api/cron/process-approved-movements
 1. Query movimientos con estado_revision = APROBADO
 2. For each:
@@ -357,10 +357,10 @@ POST /api/cron/process-approved-movements
    a. Create notification para inversor
    b. Send email
 4. Log en CronJobExecution
-```
+\`\`\`
 
 **Cada 30 minutos**
-```typescript
+\`\`\`typescript
 POST /api/cron/check-task-sla
 1. Query tareas con fecha_vencimiento próximo
 2. For each:
@@ -369,16 +369,16 @@ POST /api/cron/check-task-sla
    c. Create task_escalations record
 3. Send email a escalators
 4. Update task estado = ESCALADA
-```
+\`\`\`
 
 **Cada día a las 00:00**
-```typescript
+\`\`\`typescript
 POST /api/cron/daily-reports
 1. Generar reporte de inversiones del día
 2. Generar reporte de tareas completadas
 3. Generar reporte de movimientos
 4. Send a admin por email
-```
+\`\`\`
 
 ---
 
@@ -386,7 +386,7 @@ POST /api/cron/daily-reports
 
 ### 9.1 Métricas Clave
 
-```typescript
+\`\`\`typescript
 // Dashboard de monitoreo
 {
   "api_health": {
@@ -423,7 +423,7 @@ POST /api/cron/daily-reports
     "replication_lag_ms": 0
   }
 }
-```
+\`\`\`
 
 ### 9.2 Alertas Automáticas
 
@@ -439,7 +439,7 @@ POST /api/cron/daily-reports
 
 ## 10. VARIABLES DE ENTORNO REQUERIDAS
 
-```bash
+\`\`\`bash
 # DATABASE
 DATABASE_URL=postgresql://user:pass@host/dbname
 POSTGRES_URL=postgresql://user:pass@host/dbname
@@ -491,7 +491,7 @@ WEBHOOK_DEBUG_MODE=false
 # App
 NEXT_PUBLIC_APP_URL=https://urbix.app
 NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL=http://localhost:3000
-```
+\`\`\`
 
 ---
 

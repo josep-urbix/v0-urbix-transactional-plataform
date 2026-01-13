@@ -6,7 +6,7 @@ Sistema asíncrono para importar transacciones desde Lemonway hacia un schema te
 
 ## Arquitectura
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────┐
 │                    Sistema de Importación                        │
 └─────────────────────────────────────────────────────────────────┘
@@ -43,7 +43,7 @@ Sistema asíncrono para importar transacciones desde Lemonway hacia un schema te
          │  - tipos_operacion_contable            │
          │  - movimientos_cuenta                  │
          └────────────────────────────────────────┘
-```
+\`\`\`
 
 ## Flujo de Importación
 
@@ -74,7 +74,7 @@ Sistema asíncrono para importar transacciones desde Lemonway hacia un schema te
 ### 3. Transformación de Datos
 
 **Respuesta de Lemonway:**
-```json
+\`\`\`json
 {
   "accountId": "WALLET123",
   "transactions": [{
@@ -87,10 +87,10 @@ Sistema asíncrono para importar transacciones desde Lemonway hacia un schema te
     }
   }]
 }
-```
+\`\`\`
 
 **Guardado en `movimientos_cuenta`:**
-```sql
+\`\`\`sql
 INSERT INTO lemonway_temp.movimientos_cuenta (
   cuenta_virtual_id,          -- Mapeado desde cuentas_virtuales
   lemonway_transaction_id,    -- transactionId
@@ -100,14 +100,14 @@ INSERT INTO lemonway_temp.movimientos_cuenta (
   descripcion,                -- comment
   datos_originales_lemonway   -- JSON completo
 ) VALUES (...);
-```
+\`\`\`
 
 ## Modelo de Datos
 
 ### Schema: `lemonway_temp`
 
 #### 1. `import_runs`
-```sql
+\`\`\`sql
 id                UUID PRIMARY KEY
 cuenta_virtual_id UUID (opcional - para imports de 1 cuenta)
 status            VARCHAR (pending, processing, completed, failed)
@@ -119,30 +119,30 @@ failed_transactions INTEGER
 error_message     TEXT
 started_at        TIMESTAMPTZ
 completed_at      TIMESTAMPTZ
-```
+\`\`\`
 
 #### 2. `cuentas_virtuales`
 Mapeo de cuentas virtuales del sistema con wallets de Lemonway.
 
-```sql
+\`\`\`sql
 id                      UUID PRIMARY KEY
 cuenta_virtual_id       UUID REFERENCES VirtualAccount(id)
 lemonway_account_id     VARCHAR (el accountId de Lemonway)
 investor_id             TEXT (opcional)
 vinculado_en            TIMESTAMPTZ
 activo                  BOOLEAN
-```
+\`\`\`
 
 #### 3. `tipos_operacion_contable`
 Catálogo de tipos de operación contable.
 
-```sql
+\`\`\`sql
 id          UUID PRIMARY KEY
 codigo      VARCHAR(50) UNIQUE
 nombre      VARCHAR(255)
 descripcion TEXT
 activo      BOOLEAN
-```
+\`\`\`
 
 **Tipos por defecto:**
 - `INGRESO` - Ingreso de fondos
@@ -154,7 +154,7 @@ activo      BOOLEAN
 #### 4. `movimientos_cuenta`
 Transacciones importadas desde Lemonway.
 
-```sql
+\`\`\`sql
 id                         UUID PRIMARY KEY
 import_run_id              UUID REFERENCES import_runs
 cuenta_virtual_id          UUID REFERENCES cuentas_virtuales
@@ -169,12 +169,12 @@ estado_revision            VARCHAR (pendiente, revisado, aprobado, rechazado)
 revisado_por               TEXT
 revisado_en                TIMESTAMPTZ
 datos_originales_lemonway  JSONB
-```
+\`\`\`
 
 ## APIs REST
 
 ### 1. Iniciar Importación
-```http
+\`\`\`http
 POST /api/lemonway/imports/start
 Content-Type: application/json
 
@@ -188,12 +188,12 @@ Response 201:
   "status": "pending",
   "message": "Importación iniciada. Se procesará en segundo plano."
 }
-```
+\`\`\`
 
 **Permisos:** `lemonway_imports:start`
 
 ### 2. Listar Importaciones
-```http
+\`\`\`http
 GET /api/lemonway/imports?page=1&limit=20&status=completed
 
 Response 200:
@@ -210,12 +210,12 @@ Response 200:
   "page": 1,
   "limit": 20
 }
-```
+\`\`\`
 
 **Permisos:** `lemonway_imports:view`
 
 ### 3. Detalle de Importación
-```http
+\`\`\`http
 GET /api/lemonway/imports/{runId}
 
 Response 200:
@@ -231,12 +231,12 @@ Response 200:
   "completedAt": "2024-01-15T10:05:00Z",
   "transactions": [...]
 }
-```
+\`\`\`
 
 **Permisos:** `lemonway_imports:view`
 
 ### 4. Reintentar Importación
-```http
+\`\`\`http
 POST /api/lemonway/imports/{runId}/retry
 
 Response 200:
@@ -245,12 +245,12 @@ Response 200:
   "runId": "uuid",
   "status": "pending"
 }
-```
+\`\`\`
 
 **Permisos:** `lemonway_imports:retry`
 
 ### 5. Listar Movimientos Temporales
-```http
+\`\`\`http
 GET /api/lemonway/temp-movimientos?page=1&limit=50&estado=pendiente
 
 Response 200:
@@ -268,12 +268,12 @@ Response 200:
   "page": 1,
   "limit": 50
 }
-```
+\`\`\`
 
 **Permisos:** `lemonway_temp:view`
 
 ### 6. Editar Movimiento Temporal
-```http
+\`\`\`http
 PATCH /api/lemonway/temp-movimientos/{id}
 Content-Type: application/json
 
@@ -287,7 +287,7 @@ Response 200:
   "message": "Movimiento actualizado",
   "movimiento": {...}
 }
-```
+\`\`\`
 
 **Permisos:** `lemonway_temp:edit`
 
@@ -396,21 +396,21 @@ Response 200:
 
 **⚠️ IMPORTANTE:** Lemonway API requiere timestamps Unix (números enteros) para las fechas, NO strings ISO.
 
-```javascript
+\`\`\`javascript
 // ❌ INCORRECTO
 GET /accounts/125/transactions?startDate=2026-01-01&endDate=2026-01-31
 
 // ✅ CORRECTO
 GET /accounts/125/transactions?startDate=1735689600&endDate=1769817600
-```
+\`\`\`
 
 **Mensaje de Error de Lemonway:**
-```json
+\`\`\`json
 {
   "code": 234,
   "message": "The field StartDate must match the regular expression '^-?\\d{1,12}$'."
 }
-```
+\`\`\`
 
 La regex `'^-?\\d{1,12}$'` significa: número entero de hasta 12 dígitos, opcionalmente negativo.
 
@@ -420,17 +420,17 @@ La regex `'^-?\\d{1,12}$'` significa: número entero de hasta 12 dígitos, opcio
 **Ubicación:** Líneas ~1055-1150
 
 **Problema Actual:**
-```typescript
+\`\`\`typescript
 // Envía strings ISO
 queryParams.append("startDate", startDate.split("T")[0]); 
-```
+\`\`\`
 
 **Solución Requerida:**
-```typescript
+\`\`\`typescript
 // Convertir a timestamp Unix (segundos)
 const startTimestamp = Math.floor(new Date(startDate).getTime() / 1000);
 queryParams.append("startDate", startTimestamp.toString());
-```
+\`\`\`
 
 #### 2. `lib/workers/lemonway-import-worker.ts`
 **Ubicación:** Líneas ~40-80
@@ -448,7 +448,7 @@ queryParams.append("startDate", startTimestamp.toString());
 
 ### Archivos Clave a Revisar/Modificar
 
-```
+\`\`\`
 lib/
 ├── lemonway-client.ts           # Método getAccountTransactions (líneas 1055-1150)
 ├── workers/
@@ -476,12 +476,12 @@ components/lemonway/
 
 scripts/
 └── 139-create-lemonway-import-schema.sql  # Schema de BD
-```
+\`\`\`
 
 ### Plan de Corrección
 
 #### Paso 1: Corregir `lemonway-client.ts`
-```typescript
+\`\`\`typescript
 // En getAccountTransactions (línea ~1090)
 async getAccountTransactions(
   accountId: string,
@@ -511,7 +511,7 @@ async getAccountTransactions(
   
   return response.json();
 }
-```
+\`\`\`
 
 #### Paso 2: Verificar Worker
 El worker ya está llamando correctamente con fechas ISO (strings). El cliente las convertirá a timestamps.
@@ -541,7 +541,7 @@ Aplicar la misma lógica en `app/api/lemonway-api/test/route.ts`.
 
 ### Comandos Útiles para Debugging
 
-```sql
+\`\`\`sql
 -- Ver última importación
 SELECT * FROM lemonway_temp.import_runs ORDER BY created_at DESC LIMIT 1;
 

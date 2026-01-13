@@ -26,7 +26,7 @@
 
 ## 2. ARQUITECTURA TÉCNICA GENERAL
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────┐
 │                    FRONTEND LAYER                           │
 │  (Next.js 16, React 19, TypeScript, Tailwind + shadcn/ui)  │
@@ -101,7 +101,7 @@
 │  ├─ Google OAuth (SSO)                                      │
 │  └─ Webhooks (Lemonway, HubSpot, Stripe)                    │
 └─────────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -109,7 +109,7 @@
 
 ### 3.1 Esquema Public (Sistema Core)
 
-```sql
+\`\`\`sql
 -- USUARIOS Y SESIONES
 public.User
   ├─ id (UUID)
@@ -204,11 +204,11 @@ public.LemonwayApiCallRetryHistory
   ├─ next_retry_at (timestamp)
   ├─ last_error (text)
   └─ created_at (timestamp)
-```
+\`\`\`
 
 ### 3.2 Esquema Investors (Inversores)
 
-```sql
+\`\`\`sql
 investors.User (Diferente de public.User)
   ├─ id (UUID)
   ├─ email (string, unique)

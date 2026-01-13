@@ -22,7 +22,7 @@ He identificado **12 mejoras estratégicas** que elevarían significativamente l
 
 ### PROPUESTA
 **Nivel 1: Dry-Run Mode**
-```
+\`\`\`
 ┌─────────────────────────┐
 │ API Explorer           │
 ├─────────────────────────┤
@@ -34,7 +34,7 @@ He identificado **12 mejoras estratégicas** que elevarían significativamente l
 │ - NO ejecuta realmente │
 │ - Muestra params      │
 └─────────────────────────┘
-```
+\`\`\`
 
 **Nivel 2: Sandbox Environment**
 - Nueva tabla: `api_test_environments`
@@ -59,7 +59,7 @@ He identificado **12 mejoras estratégicas** que elevarían significativamente l
 
 ### PROPUESTA
 **Tabla: `lemonway_query_versions`**
-```sql
+\`\`\`sql
 - query_id (FK)
 - version (int)
 - created_by (user_id)
@@ -68,7 +68,7 @@ He identificado **12 mejoras estratégicas** que elevarían significativamente l
 - config_json (config usada)
 - change_description
 - is_active (bool)
-```
+\`\`\`
 
 **Funcionalidad:**
 - Cada vez que se edita una query → nueva versión automática
@@ -94,7 +94,7 @@ He identificado **12 mejoras estratégicas** que elevarían significativamente l
 ### PROPUESTA
 **Auto-generación desde schema oficial Lemonway**
 
-```typescript
+\`\`\`typescript
 // En: lib/lemonway-client/schemas.ts
 
 export const LEMONWAY_SCHEMAS = {
@@ -111,7 +111,7 @@ export const LEMONWAY_SCHEMAS = {
   },
   // ... más métodos
 }
-```
+\`\`\`
 
 **En UI:**
 - Auto-generador de form inputs desde schema
@@ -135,7 +135,7 @@ export const LEMONWAY_SCHEMAS = {
 
 ### PROPUESTA
 **Nueva tabla: `api_call_snapshots`**
-```
+\`\`\`
 - id
 - api_call_id (FK)
 - request_json (body completo)
@@ -143,10 +143,10 @@ export const LEMONWAY_SCHEMAS = {
 - status_code
 - latency_ms
 - created_at
-```
+\`\`\`
 
 **Funcionalidad UI:**
-```
+\`\`\`
 ┌──────────────────────────┐
 │ Llamada #1234            │
 ├──────────────────────────┤
@@ -167,7 +167,7 @@ export const LEMONWAY_SCHEMAS = {
 │ [Compare with #1233]     │
 │ [Export as JSON]         │
 └──────────────────────────┘
-```
+\`\`\`
 
 **Beneficios:**
 - Debugging ágil
@@ -185,7 +185,7 @@ export const LEMONWAY_SCHEMAS = {
 
 ### PROPUESTA
 **Nuevo endpoint: `POST /api/admin/lemonway/webhooks/simulate`**
-```json
+\`\`\`json
 {
   "event_type": "TRANSACTION",
   "wallet_id": "154",
@@ -197,7 +197,7 @@ export const LEMONWAY_SCHEMAS = {
   "simulate_failure": false,
   "simulate_retry": true
 }
-```
+\`\`\`
 
 **Funcionalidad:**
 - Simular cualquier evento webhook sin que realmente ocurra
@@ -206,7 +206,7 @@ export const LEMONWAY_SCHEMAS = {
 - Reproducir bugs
 
 **UI en Admin Panel:**
-```
+\`\`\`
 ┌────────────────────────────┐
 │ Webhook Simulator          │
 ├────────────────────────────┤
@@ -223,7 +223,7 @@ export const LEMONWAY_SCHEMAS = {
 │ ⏱️ 234ms                    │
 │ 📊 Updated balances        │
 └────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -236,7 +236,7 @@ export const LEMONWAY_SCHEMAS = {
 
 ### PROPUESTA
 **New UI Component: RateLimitMonitor**
-```
+\`\`\`
 Real-Time Rate Limit Status:
 
 Concurrent Requests:
@@ -251,7 +251,7 @@ Retry Queue:
 Alerts:
   ⚠️ 90% concurrency reached
   ⚠️ Rate limit will reset in 2m 34s
-```
+\`\`\`
 
 **Funcionalidad:**
 - Actualiza cada 5 segundos
@@ -275,7 +275,7 @@ Alerts:
 
 ### PROPUESTA
 **Nueva tabla: `import_schedules`**
-```sql
+\`\`\`sql
 - id
 - schedule_name (e.g., "daily_transactions")
 - cron_expression ("0 */6 * * *" = cada 6 horas)
@@ -287,7 +287,7 @@ Alerts:
 - last_run_at
 - next_run_at
 - last_error
-```
+\`\`\`
 
 **Funcionalidad:**
 - Admin configura schedules complejos
@@ -296,7 +296,7 @@ Alerts:
 - Historial de todas las importaciones
 
 **UI:**
-```
+\`\`\`
 ┌────────────────────────────────┐
 │ Import Schedules               │
 ├────────────────────────────────┤
@@ -311,7 +311,7 @@ Alerts:
 │ [+ Create Schedule]            │
 │ [Pause All] [Export Config]    │
 └────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -323,7 +323,7 @@ Alerts:
 
 ### PROPUESTA
 **Permisos granulares por sección**
-```
+\`\`\`
 lemonway:config:read/write
 ├── lemonway:config:auth → Token, wallet ID
 ├── lemonway:config:rate-limiting → Concurrency, delays
@@ -339,7 +339,7 @@ lemonway:queries:create/edit/delete/execute
 lemonway:api-explorer:execute
 lemonway:webhooks:simulate
 lemonway:imports:view/control
-```
+\`\`\`
 
 **Beneficios:**
 - Delegación segura
@@ -359,10 +359,10 @@ lemonway:imports:view/control
 **Implementar masking en 3 niveles:**
 
 **Nivel 1: Logs (siempre)**
-```
+\`\`\`
 ❌ Authorization: Bearer abc123def456xyz789
 ✅ Authorization: Bearer abc***
-```
+\`\`\`
 
 **Nivel 2: UI (según permiso)**
 - Sin permiso `view_sensitive_data`: `Token: ••••••••`
@@ -372,13 +372,13 @@ lemonway:imports:view/control
 - CSV/JSON export automáticamente enmascarado
 
 **Implementación:**
-```typescript
+\`\`\`typescript
 // lib/security/masking.ts
 export function maskApiToken(token: string): string {
   if (token.length < 8) return '***'
   return token.slice(0, 3) + '***' + token.slice(-3)
 }
-```
+\`\`\`
 
 ---
 
@@ -392,7 +392,7 @@ export function maskApiToken(token: string): string {
 ### PROPUESTA
 **Nuevo componente: LemonwayHealthCheck**
 
-```
+\`\`\`
 ┌────────────────────────────┐
 │ Lemonway Service Health    │
 ├────────────────────────────┤
@@ -415,7 +415,7 @@ export function maskApiToken(token: string): string {
 │                           │
 │ [View Full Metrics]       │
 └────────────────────────────┘
-```
+\`\`\`
 
 **Funcionalidad:**
 - Ping automático cada 30s
@@ -435,7 +435,7 @@ export function maskApiToken(token: string): string {
 ### PROPUESTA
 **Template de Operaciones Batch**
 
-```
+\`\`\`
 Template: "Daily Transaction Import"
 ├── Step 1: Get all accounts
 ├── Step 2: For each account, get transactions
@@ -447,10 +447,10 @@ Template: "Wallet Verification Check"
 ├── Step 1: Get KYC status for 50 wallets
 ├── Step 2: Update cache
 └── Step 3: Generate report
-```
+\`\`\`
 
 **UI:**
-```
+\`\`\`
 ┌─────────────────────────────┐
 │ Batch Operations            │
 ├─────────────────────────────┤
@@ -470,7 +470,7 @@ Template: "Wallet Verification Check"
 │ ✅ Daily Import - 2h ago   │
 │ ✅ Verification - 4h ago   │
 └─────────────────────────────┘
-```
+\`\`\`
 
 ---
 
@@ -484,7 +484,7 @@ Template: "Wallet Verification Check"
 ### PROPUESTA
 **Asistente IA integrado en API Explorer**
 
-```
+\`\`\`
 User: "I want to get all transactions for wallet 154 in the last 7 days"
 
 AI Assistant generates:
@@ -499,7 +499,7 @@ AI Assistant generates:
 }
 
 [Accuracy: 95%] [Use] [Edit] [Explain]
-```
+\`\`\`
 
 **Funcionalidad:**
 - Chat interface en API Explorer
