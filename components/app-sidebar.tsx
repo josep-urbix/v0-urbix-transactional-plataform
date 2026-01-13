@@ -120,6 +120,7 @@ export function AppSidebar({ userRole }: AppSidebarProps) {
       basePath: "/dashboard/lemonway",
       items: [
         { href: "/dashboard/admin/lemonway", label: "Panel Admin", adminOnly: true },
+        { href: "/dashboard/admin/lemonway/accounts", label: "Crear Cuentas", adminOnly: true },
         { href: "/dashboard/lemonway-transactions", label: "Transacciones" },
         { href: "/dashboard/lemonway-webhooks", label: "Webhooks", adminOnly: true },
         { href: "/dashboard/lemonway-api-explorer", label: "API Explorer", adminOnly: true },

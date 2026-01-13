@@ -1,25 +1,28 @@
 "use client"
 
-import type React from "react"
-
-import { useEffect, useState, useCallback, useRef } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
-import type { Country, LemonwayAccountRequest } from "@/lib/types/lemonway-account-request"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertCircle } from "lucide-react"
+import { ChevronDown } from "lucide-react"
 
-const PROFILE_TYPES = ["PROJECT_HOLDER", "DONOR", "STUDENT", "JOB_SEEKER", "PAYER"]
+const PROFILE_TYPES = [
+  { value: "PROJECT_HOLDER", label: "Titular de Proyecto" },
+  { value: "DONOR", label: "Donante" },
+  { value: "STUDENT", label: "Estudiante" },
+  { value: "JOB_SEEKER", label: "Solicitante de Empleo" },
+  { value: "PAYER", label: "Pagador" },
+]
 
-export function CreateAccountForm() {
-  const [countries, setCountries] = useState<Country[]>([])
-  const [isLoadingCountries, setIsLoadingCountries] = useState(true)
-
-  // Form data state
-  const [formData, setFormData] = useState<Partial<LemonwayAccountRequest>>({
+export default function CreateAccountForm() {
+  const [isLoadingCountries, setIsLoadingCountries] = useState(false)
+  const [countries, setCountries] = useState([])
+  const [editingRequestId, setEditingRequestId] = useState(null)
+  const [isLoadingEditData, setIsLoadingEditData] = useState(false)
+  const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
     birth_date: "",
@@ -27,402 +30,492 @@ export function CreateAccountForm() {
     phone_number: "",
     birth_country_id: "",
     nationality_ids: [],
-    profile_type: "PROJECT_HOLDER",
+    profile_type: "",
     street: "",
     city: "",
     postal_code: "",
     country_id: "",
     province: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errors, setErrors] = useState({})
+  const [duplicateError, setDuplicateError] = useState(null)
+  const [showDuplicateModal, setShowDuplicateModal] = useState(false)
+  const [showNationalityDropdown, setShowNationalityDropdown] = useState(false)
 
-  // Auto-save state
-  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle")
-  const [autoSaveMessage, setAutoSaveMessage] = useState("")
-  const [requestId, setRequestId] = useState<string>("")
-  const debounceTimerRef = useRef<NodeJS.Timeout>()
-  const autoSaveCounterRef = useRef(0)
-
-  // Load countries on mount
+  // Fetch countries on mount
   useEffect(() => {
-    const loadCountries = async () => {
+    const fetchCountries = async () => {
+      setIsLoadingCountries(true)
       try {
-        const res = await fetch("/api/investors/countries?is_active=true")
-        const data = await res.json()
-        if (data.success) {
-          setCountries(data.data || [])
+        const response = await fetch("/api/investors/countries")
+        const result = await response.json()
+        if (result.success && result.data) {
+          setCountries(result.data)
         }
       } catch (error) {
-        console.error("[v0] Error loading countries:", error)
+        console.error("[v0] Error fetching countries:", error)
       } finally {
         setIsLoadingCountries(false)
       }
     }
-
-    loadCountries()
+    fetchCountries()
   }, [])
 
-  // Load existing draft on mount
   useEffect(() => {
-    const recoverDraft = async () => {
+    const handleEditEvent = async (event) => {
+      const requestId = event.detail
+      setEditingRequestId(requestId)
+      setIsLoadingEditData(true)
+
       try {
-        const res = await fetch("/api/admin/lemonway/accounts/request/recover")
-        const data = await res.json()
-        if (data.draft) {
-          setFormData(data.draft)
-          setRequestId(data.draft.requestId)
+        const response = await fetch(`/api/admin/lemonway/accounts/${requestId}`)
+        const result = await response.json()
+
+        if (result.success && result.data) {
+          const account = result.data
+          setFormData({
+            first_name: account.first_name || "",
+            last_name: account.last_name || "",
+            birth_date: account.birth_date || "",
+            email: account.email || "",
+            phone_number: account.phone_number || "",
+            birth_country_id: account.birth_country_id || "",
+            nationality_ids: account.nationality_ids || [],
+            profile_type: account.profile_type || "",
+            street: account.street || "",
+            city: account.city || "",
+            postal_code: account.postal_code || "",
+            country_id: account.country_id || "",
+            province: account.province || "",
+          })
+          // Scroll to form
+          window.scrollTo({ top: 0, behavior: "smooth" })
         }
       } catch (error) {
-        console.error("[v0] Error recovering draft:", error)
+        console.error("[v0] Error loading request data:", error)
+      } finally {
+        setIsLoadingEditData(false)
       }
     }
 
-    recoverDraft()
+    window.addEventListener("editAccount", handleEditEvent)
+    return () => window.removeEventListener("editAccount", handleEditEvent)
   }, [])
 
-  // Auto-save handler with debouncing
-  const handleAutoSave = useCallback(
-    async (updatedData: Partial<LemonwayAccountRequest>) => {
-      // Clear existing debounce timer
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
-
-      // Set saving status
-      setAutoSaveStatus("saving")
-      autoSaveCounterRef.current++
-
-      // Debounce for 1.5 seconds
-      debounceTimerRef.current = setTimeout(async () => {
+  // Auto-save DRAFT
+  useEffect(() => {
+    const autoSaveTimer = setTimeout(async () => {
+      if (formData.first_name || formData.email || formData.birth_date || formData.last_name) {
         try {
-          const res = await fetch("/api/admin/lemonway/accounts/request/auto-save", {
+          await fetch("/api/admin/lemonway/accounts/request/auto-save", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              requestId: requestId || undefined,
-              ...updatedData,
-            }),
+            body: JSON.stringify(formData),
           })
-
-          const data = await res.json()
-
-          if (res.ok) {
-            if (!requestId) {
-              setRequestId(data.requestId)
-            }
-            setAutoSaveStatus("saved")
-            setAutoSaveMessage("Guardado")
-
-            // Clear saved status after 2 seconds
-            setTimeout(() => {
-              setAutoSaveStatus("idle")
-              setAutoSaveMessage("")
-            }, 2000)
-          } else {
-            setAutoSaveStatus("error")
-            setAutoSaveMessage(data.error || "Error al guardar")
-          }
         } catch (error) {
           console.error("[v0] Auto-save error:", error)
-          setAutoSaveStatus("error")
-          setAutoSaveMessage("Error de conexión")
         }
-      }, 1500)
-    },
-    [requestId],
-  )
+      }
+    }, 3000)
 
-  // Handle input change with auto-save
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | { target: { name: string; value: string } },
-  ) => {
+    return () => clearTimeout(autoSaveTimer)
+  }, [formData])
+
+  const handleInputChange = (e) => {
     const { name, value } = e.target
-    const updatedData = { ...formData, [name]: value }
-    setFormData(updatedData)
-    handleAutoSave(updatedData)
-  }
-
-  // Handle multi-select for nationalities
-  const handleNationalityChange = (countryId: string) => {
-    const nationalityIds = formData.nationality_ids || []
-    const updated = nationalityIds.includes(countryId)
-      ? nationalityIds.filter((id) => id !== countryId)
-      : [...nationalityIds, countryId]
-
-    const updatedData = { ...formData, nationality_ids: updated }
-    setFormData(updatedData)
-    handleAutoSave(updatedData)
-  }
-
-  // Auto-save status indicator
-  const getAutoSaveIndicator = () => {
-    switch (autoSaveStatus) {
-      case "saving":
-        return (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Guardando...</span>
-          </div>
-        )
-      case "saved":
-        return (
-          <div className="flex items-center gap-2 text-sm text-green-600">
-            <CheckCircle2 className="h-4 w-4" />
-            <span>{autoSaveMessage}</span>
-          </div>
-        )
-      case "error":
-        return (
-          <div className="flex items-center gap-2 text-sm text-red-600">
-            <AlertCircle className="h-4 w-4" />
-            <span>{autoSaveMessage}</span>
-          </div>
-        )
-      default:
-        return null
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }))
     }
   }
 
-  const activeNationalities = countries.filter((c) => formData.nationality_ids?.includes(c.id))
+  const handleSelectChange = (name, value) => {
+    setFormData((prev) => ({ ...prev, [name]: value }))
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }))
+    }
+  }
+
+  const handleNationalityChange = (countryId) => {
+    setFormData((prev) => ({
+      ...prev,
+      nationality_ids: prev.nationality_ids.includes(countryId)
+        ? prev.nationality_ids.filter((id) => id !== countryId)
+        : [...prev.nationality_ids, countryId],
+    }))
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+    if (!formData.first_name.trim()) newErrors.first_name = "Requerido"
+    if (!formData.last_name.trim()) newErrors.last_name = "Requerido"
+    if (!formData.birth_date) newErrors.birth_date = "Requerido"
+    if (!formData.email.trim()) newErrors.email = "Requerido"
+    if (!formData.birth_country_id) newErrors.birth_country_id = "Requerido"
+    if (!formData.profile_type) newErrors.profile_type = "Requerido"
+    if (formData.nationality_ids.length === 0) newErrors.nationality_ids = "Requerido"
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!validateForm()) return
+
+    setIsSubmitting(true)
+    try {
+      const response = await fetch("/api/admin/lemonway/accounts/create-account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      })
+
+      const result = await response.json()
+
+      if (response.status === 409 && result.status === "DUPLICATE_FOUND") {
+        setDuplicateError(result)
+        setShowDuplicateModal(true)
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error(result.error || "Error creating account")
+      }
+
+      // Success - reset form
+      setFormData({
+        first_name: "",
+        last_name: "",
+        birth_date: "",
+        email: "",
+        phone_number: "",
+        birth_country_id: "",
+        nationality_ids: [],
+        profile_type: "",
+        street: "",
+        city: "",
+        postal_code: "",
+        country_id: "",
+        province: "",
+      })
+      setErrors({})
+      alert("Cuenta creada exitosamente")
+    } catch (error) {
+      console.error("[v0] Account creation error:", error)
+      setErrors({ submit: error.message })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
-    <div className="space-y-6">
-      {requestId && (
-        <Alert>
-          <AlertDescription>
-            Solicitud: <Badge variant="outline">{requestId}</Badge>
-          </AlertDescription>
-        </Alert>
-      )}
+    <div className="max-w-4xl mx-auto space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Información Personal */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Información Personal</h3>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Crear Cuenta en Lemonway</CardTitle>
-            <CardDescription>Fase 1: Información Básica</CardDescription>
-          </div>
-          <div>{getAutoSaveIndicator()}</div>
-        </CardHeader>
-
-        <CardContent className="space-y-6">
-          {/* Información Personal */}
-          <div>
-            <h3 className="font-semibold mb-4">Información Personal</h3>
-            <div className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Nombre *</label>
-                  <Input
-                    name="first_name"
-                    value={formData.first_name || ""}
-                    onChange={handleInputChange}
-                    placeholder="Juan"
-                    maxLength={35}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Máximo 35 caracteres</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Apellido *</label>
-                  <Input
-                    name="last_name"
-                    value={formData.last_name || ""}
-                    onChange={handleInputChange}
-                    placeholder="García"
-                    maxLength={35}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Máximo 35 caracteres</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Email *</label>
-                <Input
-                  name="email"
-                  type="email"
-                  value={formData.email || ""}
-                  onChange={handleInputChange}
-                  placeholder="juan@example.com"
-                  maxLength={60}
-                />
-                <p className="text-xs text-muted-foreground mt-1">Máximo 60 caracteres</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Fecha de Nacimiento *</label>
-                  <Input name="birth_date" type="date" value={formData.birth_date || ""} onChange={handleInputChange} />
-                  <p className="text-xs text-muted-foreground mt-1">Debe ser mayor de 18 años</p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Teléfono</label>
-                  <Input
-                    name="phone_number"
-                    value={formData.phone_number || ""}
-                    onChange={handleInputChange}
-                    placeholder="+34612345678"
-                    maxLength={20}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">Formato: +[country code]</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">País de Nacimiento *</label>
-                {isLoadingCountries ? (
-                  <div className="text-sm text-muted-foreground">Cargando países...</div>
-                ) : (
-                  <Select
-                    value={formData.birth_country_id || ""}
-                    onValueChange={(value) => handleInputChange({ target: { name: "birth_country_id", value } })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona país..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map((country) => (
-                        <SelectItem key={country.id} value={country.id}>
-                          {country.code_iso2} - {country.name_es}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Nacionalidades * (múltiples)</label>
-                <div className="border rounded-lg p-4 space-y-3 max-h-48 overflow-y-auto">
-                  {isLoadingCountries ? (
-                    <div className="text-sm text-muted-foreground">Cargando...</div>
-                  ) : (
-                    countries.map((country) => (
-                      <label key={country.id} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={formData.nationality_ids?.includes(country.id) || false}
-                          onChange={() => handleNationalityChange(country.id)}
-                          className="rounded border-gray-300"
-                        />
-                        <span className="text-sm">
-                          {country.code_iso2} - {country.name_es}
-                        </span>
-                      </label>
-                    ))
-                  )}
-                </div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {activeNationalities.map((country) => (
-                    <Badge key={country.id} variant="secondary">
-                      {country.code_iso2}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Dirección */}
-          <div>
-            <h3 className="font-semibold mb-4">Dirección</h3>
-            <div className="grid gap-4">
-              <div>
-                <label className="text-sm font-medium">Calle</label>
-                <Input
-                  name="street"
-                  value={formData.street || ""}
-                  onChange={handleInputChange}
-                  placeholder="Calle 123"
-                  maxLength={256}
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <label className="text-sm font-medium">Ciudad</label>
-                  <Input
-                    name="city"
-                    value={formData.city || ""}
-                    onChange={handleInputChange}
-                    placeholder="Madrid"
-                    maxLength={90}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Código Postal</label>
-                  <Input
-                    name="postal_code"
-                    value={formData.postal_code || ""}
-                    onChange={handleInputChange}
-                    placeholder="28001"
-                    maxLength={90}
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">País *</label>
-                  <Select
-                    value={formData.country_id || ""}
-                    onValueChange={(value) => handleInputChange({ target: { name: "country_id", value } })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {countries.map((country) => (
-                        <SelectItem key={country.id} value={country.id}>
-                          {country.code_iso2} - {country.name_es}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium">Provincia/Estado</label>
-                <Input
-                  name="province"
-                  value={formData.province || ""}
-                  onChange={handleInputChange}
-                  placeholder="Madrid"
-                  maxLength={90}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Tipo de Perfil */}
-          <div>
-            <h3 className="font-semibold mb-4">Perfil de Inversor</h3>
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium">Tipo de Perfil *</label>
+              <Label htmlFor="first_name">Nombre *</Label>
+              <Input
+                id="first_name"
+                name="first_name"
+                placeholder="Juan"
+                value={formData.first_name}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
+              {errors.first_name && <span className="text-xs text-red-500">{errors.first_name}</span>}
+            </div>
+
+            <div>
+              <Label htmlFor="last_name">Apellido *</Label>
+              <Input
+                id="last_name"
+                name="last_name"
+                placeholder="García"
+                value={formData.last_name}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
+              {errors.last_name && <span className="text-xs text-red-500">{errors.last_name}</span>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="birth_date">Fecha de Nacimiento *</Label>
+              <Input
+                id="birth_date"
+                name="birth_date"
+                type="date"
+                value={formData.birth_date}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
+              {errors.birth_date && <span className="text-xs text-red-500">{errors.birth_date}</span>}
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email *</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="juan@example.com"
+                value={formData.email}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
+              {errors.email && <span className="text-xs text-red-500">{errors.email}</span>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="phone_number">Teléfono</Label>
+              <Input
+                id="phone_number"
+                name="phone_number"
+                placeholder="+34 612 345 678"
+                value={formData.phone_number}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="birth_country_id">País de Nacimiento *</Label>
               <Select
-                value={formData.profile_type || "PROJECT_HOLDER"}
-                onValueChange={(value) => handleInputChange({ target: { name: "profile_type", value } })}
+                value={formData.birth_country_id}
+                onValueChange={(value) => handleSelectChange("birth_country_id", value)}
+                disabled={isLoadingCountries || isSubmitting}
               >
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger id="birth_country_id">
+                  <SelectValue placeholder="Selecciona un país" />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROFILE_TYPES.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
+                  {countries.map((country) => (
+                    <SelectItem key={country.id} value={country.id}>
+                      {country.name_en || country.name_es || "País desconocido"}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {errors.birth_country_id && <span className="text-xs text-red-500">{errors.birth_country_id}</span>}
+            </div>
+          </div>
+        </div>
+
+        {/* Información de Dirección */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Información de Dirección</h3>
+
+          <div>
+            <Label htmlFor="street">Calle</Label>
+            <Input
+              id="street"
+              name="street"
+              placeholder="Calle Principal, 123"
+              value={formData.street}
+              onChange={handleInputChange}
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="city">Ciudad</Label>
+              <Input
+                id="city"
+                name="city"
+                placeholder="Madrid"
+                value={formData.city}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="postal_code">Código Postal</Label>
+              <Input
+                id="postal_code"
+                name="postal_code"
+                placeholder="28001"
+                value={formData.postal_code}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="province">Provincia/Estado</Label>
+              <Input
+                id="province"
+                name="province"
+                placeholder="Madrid"
+                value={formData.province}
+                onChange={handleInputChange}
+                disabled={isSubmitting}
+              />
             </div>
           </div>
 
-          {/* Botones de acción */}
-          <div className="flex gap-4 pt-4 border-t">
-            <Button variant="outline" className="flex-1 bg-transparent">
-              Cancelar
-            </Button>
-            <Button className="flex-1">Crear Cuenta</Button>
+          <div>
+            <Label htmlFor="country_id">País de Residencia</Label>
+            <Select
+              value={formData.country_id}
+              onValueChange={(value) => handleSelectChange("country_id", value)}
+              disabled={isLoadingCountries || isSubmitting}
+            >
+              <SelectTrigger id="country_id">
+                <SelectValue placeholder="Selecciona un país" />
+              </SelectTrigger>
+              <SelectContent>
+                {countries.map((country) => (
+                  <SelectItem key={country.id} value={country.id}>
+                    {country.name_en || country.name_es || "País desconocido"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+
+        {/* Perfil y Nacionalidad */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Perfil y Nacionalidad</h3>
+
+          <div>
+            <Label htmlFor="profile_type">Tipo de Perfil *</Label>
+            <Select
+              value={formData.profile_type}
+              onValueChange={(value) => handleSelectChange("profile_type", value)}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="profile_type">
+                <SelectValue placeholder="Selecciona un tipo de perfil" />
+              </SelectTrigger>
+              <SelectContent>
+                {PROFILE_TYPES.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.profile_type && <span className="text-xs text-red-500">{errors.profile_type}</span>}
+          </div>
+
+          <div>
+            <Label htmlFor="nationality_ids" className="block text-sm font-medium mb-2">
+              Nacionalidad <span className="text-red-500">*</span>
+            </Label>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowNationalityDropdown(!showNationalityDropdown)}
+                disabled={isSubmitting || isLoadingCountries}
+                className="w-full px-3 py-2 text-left border rounded-lg bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-between"
+              >
+                <span className="text-sm">
+                  {formData.nationality_ids.length === 0
+                    ? "Selecciona nacionalidades"
+                    : `${formData.nationality_ids.length} nacionalidad(es) seleccionada(s)`}
+                </span>
+                <ChevronDown className="h-4 w-4" />
+              </button>
+
+              {showNationalityDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                  {isLoadingCountries ? (
+                    <p className="p-3 text-sm text-gray-500">Cargando nacionalidades...</p>
+                  ) : countries.length === 0 ? (
+                    <p className="p-3 text-sm text-gray-500">No se encontraron países</p>
+                  ) : (
+                    <div className="p-2 space-y-1">
+                      {countries.map((country) => (
+                        <label
+                          key={country.id}
+                          className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 rounded cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={formData.nationality_ids.includes(country.id)}
+                            onChange={() => handleNationalityChange(country.id)}
+                            disabled={isSubmitting || isLoadingCountries}
+                            className="h-4 w-4 rounded"
+                          />
+                          <span className="text-sm flex-1">
+                            {country.name_en || country.name_es || "País desconocido"}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            {errors.nationality_ids && (
+              <span className="text-xs text-red-500 mt-1 block">{errors.nationality_ids}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Error de envío */}
+        {errors.submit && (
+          <div className="flex gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-600">{errors.submit}</p>
+          </div>
+        )}
+
+        {/* Botón de envío */}
+        <Button type="submit" disabled={isSubmitting || isLoadingCountries} className="w-full" size="lg">
+          {isSubmitting ? "Creando cuenta..." : "Crear Cuenta"}
+        </Button>
+      </form>
+
+      {/* Modal de duplicados */}
+      <Dialog open={showDuplicateModal} onOpenChange={setShowDuplicateModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Solicitud Duplicada</DialogTitle>
+            <DialogDescription>
+              Se encontraron {duplicateError?.duplicates?.length || 0} solicitud(es) similar(es) en el sistema.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 max-h-64 overflow-y-auto">
+            {duplicateError?.duplicates?.map((dup, idx) => (
+              <div key={idx} className="p-3 bg-gray-50 rounded-lg text-sm">
+                <p className="font-medium">
+                  {dup.first_name} {dup.last_name}
+                </p>
+                <p className="text-gray-600">{dup.email}</p>
+                <p className="text-gray-500 text-xs">Creado: {new Date(dup.created_at).toLocaleDateString()}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" className="flex-1 bg-transparent" onClick={() => setShowDuplicateModal(false)}>
+              Intentar nuevamente
+            </Button>
+            <Button
+              className="flex-1"
+              onClick={() => {
+                window.location.href = `mailto:soporte@urbix.es?subject=Solicitud Duplicada ${formData.email}`
+              }}
+            >
+              Contactar Soporte
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
-
-export default CreateAccountForm

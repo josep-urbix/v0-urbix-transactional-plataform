@@ -1,5 +1,5 @@
 import { getSession, requirePermission } from "@/lib/auth"
-import { sql } from "@neon/serverless"
+import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const result = await sql`
       SELECT *
       FROM investors.lemonway_account_requests
-      WHERE created_by_user_id = ${userId}
+      WHERE created_by = ${userId}
         AND status = 'DRAFT'
         AND deleted_at IS NULL
       ORDER BY updated_at DESC

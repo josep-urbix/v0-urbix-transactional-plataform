@@ -1,5 +1,5 @@
 import { getSession, requirePermission } from "@/lib/auth"
-import { sql } from "@neon/serverless"
+import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
 
 interface AutoSavePayload {
@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSession()
 
-    // Verificar permiso + auditoría automática
     const authResult = await requirePermission(
       session?.user,
       "lemonway:accounts:create",
@@ -50,7 +49,15 @@ export async function POST(request: NextRequest) {
     const payload: AutoSavePayload = await request.json()
 
     const fieldsToUpdate = Object.entries(payload)
-      .filter(([key, value]) => key !== "requestId" && value !== undefined)
+      .filter(
+        ([key, value]) =>
+          key !== "requestId" &&
+          key !== "created_by" &&
+          key !== "updated_at" &&
+          key !== "validation_status" &&
+          value !== undefined,
+      )
+      .map(([key, value]) => [key, typeof value === "string" && value.trim() === "" ? null : value])
       .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {})
 
     if (Object.keys(fieldsToUpdate).length === 0) {
@@ -60,7 +67,6 @@ export async function POST(request: NextRequest) {
     let requestId = payload.requestId
 
     if (!requestId) {
-      // Generar referencia única: REQ-2025-XXXXX
       const year = new Date().getFullYear()
       const randomPart = Math.floor(Math.random() * 100000)
         .toString()
@@ -71,15 +77,17 @@ export async function POST(request: NextRequest) {
         INSERT INTO investors.lemonway_account_requests (
           request_reference,
           status,
-          created_by_user_id,
+          created_by,
           created_at,
-          updated_at
+          updated_at,
+          validation_status
         ) VALUES (
           ${reference},
           'DRAFT',
           ${userId},
           NOW(),
-          NOW()
+          NOW(),
+          'PENDING'
         )
         RETURNING id
       `
@@ -87,20 +95,26 @@ export async function POST(request: NextRequest) {
       requestId = createResult[0].id
     }
 
-    const updateFields = Object.keys(fieldsToUpdate)
-      .map((key) => `${key} = $${Object.keys(fieldsToUpdate).indexOf(key) + 1}`)
-      .join(", ")
+    if (Object.keys(fieldsToUpdate).length > 0) {
+      const updates: string[] = []
+      const values: (string | string[] | boolean | null)[] = []
 
-    const updateValues = Object.values(fieldsToUpdate)
+      Object.entries(fieldsToUpdate).forEach(([key, value], index) => {
+        updates.push(`${key} = $${index + 1}`)
+        values.push(value)
+      })
 
-    await sql`
-      UPDATE investors.lemonway_account_requests
-      SET 
-        ${sql.raw(updateFields)},
-        updated_at = NOW(),
-        validation_status = 'PENDING'
-      WHERE id = ${requestId} AND status = 'DRAFT'
-    `.bind(...updateValues)
+      const setClause = updates.join(", ")
+
+      await sql.query(
+        `UPDATE investors.lemonway_account_requests 
+         SET ${setClause}
+         WHERE id = $${Object.keys(fieldsToUpdate).length + 1} 
+           AND created_by = $${Object.keys(fieldsToUpdate).length + 2}
+           AND status = 'DRAFT'`,
+        [...values, requestId, userId],
+      )
+    }
 
     return NextResponse.json(
       {

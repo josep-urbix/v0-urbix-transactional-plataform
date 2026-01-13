@@ -1,20 +1,5 @@
-/**
- * Endpoint: GET /api/admin/lemonway/accounts/list
- * Propósito: Listar solicitudes de creación de cuentas con filtrado y búsqueda
- * Query params:
- *   - status: DRAFT, SUBMITTED, KYC-1 Completo, KYC-2 Completo, INVALID, REJECTED, CANCELLED
- *   - search: búsqueda por nombre, email, referencia
- *   - validation_status: PENDING, VALID, INVALID
- *   - page: número de página (default: 1)
- *   - limit: items por página (default: 50, max: 100)
- *   - sort: campo para ordenar (created_at, updated_at, request_reference)
- *   - order: ASC o DESC (default: DESC)
- * Permisos: lemonway:accounts:view
- * Trazabilidad: Especificación Sección 8.2
- */
-
 import { getSession, requirePermission } from "@/lib/auth"
-import { sql } from "@neon/serverless"
+import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest) {
@@ -33,9 +18,9 @@ export async function GET(request: NextRequest) {
 
     // Parsear query params
     const searchParams = request.nextUrl.searchParams
-    const status = searchParams.get("status")
-    const validation_status = searchParams.get("validation_status")
-    const search = searchParams.get("search")
+    const status = searchParams.get("status") || null
+    const validation_status = searchParams.get("validation_status") || null
+    const search = searchParams.get("search") || null
     const page = Math.max(1, Number.parseInt(searchParams.get("page") || "1"))
     const limit = Math.min(100, Math.max(1, Number.parseInt(searchParams.get("limit") || "50")))
     const sort = (searchParams.get("sort") || "created_at") as string
@@ -44,65 +29,56 @@ export async function GET(request: NextRequest) {
     // Validar columnas permitidas para sort
     const allowedSortColumns = ["created_at", "updated_at", "request_reference", "status"]
     const sortColumn = allowedSortColumns.includes(sort) ? sort : "created_at"
+    const offset = (page - 1) * limit
 
-    // Construir WHERE clause dinámico
-    const whereConditions = ["deleted_at IS NULL"]
+    // Build WHERE clause with proper parameterization
+    const baseWhere = `deleted_at IS NULL`
+    const whereConditions: string[] = [baseWhere]
+    const queryParams: (string | number | null)[] = []
 
     if (status) {
-      whereConditions.push(`status = '${status}'`)
+      whereConditions.push(`status = $${queryParams.length + 1}`)
+      queryParams.push(status)
     }
 
     if (validation_status) {
-      whereConditions.push(`validation_status = '${validation_status}'`)
+      whereConditions.push(`validation_status = $${queryParams.length + 1}`)
+      queryParams.push(validation_status)
     }
 
     if (search) {
       const searchTerm = `%${search}%`
       whereConditions.push(
-        `(LOWER(first_name) LIKE LOWER('${search}%') OR LOWER(last_name) LIKE LOWER('${search}%') OR LOWER(email) LIKE LOWER('${search}%') OR request_reference LIKE '${searchTerm}')`,
+        `(LOWER(first_name) LIKE LOWER($${queryParams.length + 1}) OR LOWER(last_name) LIKE LOWER($${queryParams.length + 1}) OR LOWER(email) LIKE LOWER($${queryParams.length + 1}) OR request_reference LIKE $${queryParams.length + 4})`,
       )
+      queryParams.push(searchTerm, searchTerm, searchTerm, searchTerm)
     }
 
     const whereClause = whereConditions.join(" AND ")
-    const offset = (page - 1) * limit
 
-    // Obtener total de registros
-    const countResult = await sql`
-      SELECT COUNT(*) as total
-      FROM investors.lemonway_account_requests
-      WHERE ${sql.raw(whereClause)}
-    `
-    const total = countResult[0].total
+    // Get total count using sql.query with parameterized query
+    const countQuery = `SELECT COUNT(*) as total FROM investors.lemonway_account_requests WHERE ${whereClause}`
+    const countResult = await sql.query(countQuery, queryParams)
+    const total = countResult[0]?.total || 0
 
-    // Obtener registros paginados
-    const results = await sql`
-      SELECT 
-        id,
-        request_reference,
-        status,
-        validation_status,
-        first_name,
-        last_name,
-        email,
-        lemonway_wallet_id,
-        created_at,
-        updated_at,
-        submitted_at,
-        kyc_1_completed_at,
-        kyc_2_completed_at,
-        profile_type
-      FROM investors.lemonway_account_requests
-      WHERE ${sql.raw(whereClause)}
-      ORDER BY ${sql.raw(sortColumn)} ${sql.raw(order)}
-      LIMIT ${limit} OFFSET ${offset}
-    `
+    // Get paginated data using sql.query
+    const dataQuery = `SELECT 
+      id, request_reference, status, validation_status, first_name, last_name, email,
+      lemonway_wallet_id, created_at, updated_at, submitted_at, kyc_1_completed_at,
+      kyc_2_completed_at, profile_type
+      FROM investors.lemonway_account_requests 
+      WHERE ${whereClause}
+      ORDER BY ${sortColumn} ${order}
+      LIMIT ${limit} OFFSET ${offset}`
+
+    const dataResult = await sql.query(dataQuery, queryParams)
 
     const pages = Math.ceil(total / limit)
 
     return NextResponse.json(
       {
         success: true,
-        data: results,
+        data: dataResult,
         pagination: {
           page,
           limit,

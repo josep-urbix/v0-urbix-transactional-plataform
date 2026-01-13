@@ -8,7 +8,7 @@
  * 3. Búsqueda fuzzy para similares
  */
 
-import { sql } from "@neon/serverless"
+import { sql } from "@/lib/db"
 import { LemonwayClient } from "./lemonway-client"
 
 export interface DuplicateCheckResult {

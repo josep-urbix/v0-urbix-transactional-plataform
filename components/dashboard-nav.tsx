@@ -37,6 +37,7 @@ const hubspotItems = [
 
 const lemonwayItems = [
   { href: "/dashboard/lemonway-transactions", label: "Transacciones" },
+  { href: "/dashboard/admin/lemonway/accounts", label: "Crear Cuentas", adminOnly: true },
   { href: "/dashboard/lemonway-webhooks", label: "Webhooks", adminOnly: true },
   { href: "/dashboard/lemonway-test", label: "Probar Api", adminOnly: true },
   { href: "/dashboard/lemonway-config", label: "Configuración", adminOnly: true },
@@ -107,6 +108,7 @@ export function DashboardNav({ userRole }: { userRole?: string }) {
     pathname.startsWith("/dashboard/transactions") || pathname.startsWith("/dashboard/app-settings")
   const isLemonwayActive =
     pathname.startsWith("/dashboard/lemonway-transactions") ||
+    pathname.startsWith("/dashboard/admin/lemonway/accounts") ||
     pathname.startsWith("/dashboard/lemonway-webhooks") ||
     pathname.startsWith("/dashboard/lemonway-test") ||
     pathname.startsWith("/dashboard/lemonway-config")
@@ -281,6 +283,7 @@ export function DashboardNav({ userRole }: { userRole?: string }) {
                     pathname.startsWith(item.href) ? "bg-[#F2F2F2] text-[#164AA6]" : "",
                   )}
                 >
+                  {item.icon && <item.icon className="h-4 w-4 mr-2" />}
                   {item.label}
                 </Link>
               </DropdownMenuItem>
