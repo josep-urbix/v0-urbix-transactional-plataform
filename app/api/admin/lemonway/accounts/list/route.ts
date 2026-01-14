@@ -31,34 +31,35 @@ export async function GET(request: NextRequest) {
     const sortColumn = allowedSortColumns.includes(sort) ? sort : "created_at"
     const offset = (page - 1) * limit
 
-    // Build WHERE clause with proper parameterization
-    let whereClause = "deleted_at IS NULL"
-    const params: (string | number | null)[] = []
+    const whereConditions: string[] = ["deleted_at IS NULL"]
+    let searchTerm: string | null = null
 
     if (status) {
-      whereClause += ` AND status = $${params.length + 1}`
-      params.push(status)
+      whereConditions.push(`status = '${status.replace(/'/g, "''")}'`)
     }
 
     if (validation_status) {
-      whereClause += ` AND validation_status = $${params.length + 1}`
-      params.push(validation_status)
+      whereConditions.push(`validation_status = '${validation_status.replace(/'/g, "''")}'`)
     }
 
     if (search) {
-      const searchTerm = `%${search}%`
-      whereClause += ` AND (LOWER(first_name) LIKE LOWER($${params.length + 1}) OR LOWER(last_name) LIKE LOWER($${params.length + 2}) OR LOWER(email) LIKE LOWER($${params.length + 3}) OR request_reference LIKE $${params.length + 4})`
-      params.push(searchTerm, searchTerm, searchTerm, searchTerm)
+      searchTerm = `%${search.replace(/'/g, "''").toLowerCase()}%`
+      whereConditions.push(
+        `(LOWER(first_name) LIKE '${searchTerm}' OR LOWER(last_name) LIKE '${searchTerm}' OR LOWER(email) LIKE '${searchTerm}' OR request_reference LIKE '${searchTerm.replace(/%/g, "")}%')`,
+      )
     }
 
-    // Get total count - using template literal with dynamic WHERE clause
-    const countQueryStr = `SELECT COUNT(*) as total FROM investors.lemonway_account_requests WHERE ${whereClause}`
-    const countResult = await sql.query(countQueryStr, params)
+    const whereClause = whereConditions.join(" AND ")
+
+    // Get total count using template literal
+    const countResult = await sql`
+      SELECT COUNT(*) as total FROM investors.lemonway_account_requests 
+      WHERE ${sql.unsafe(whereClause)}
+    `
     const total = countResult[0]?.total || 0
 
-    // Get paginated data - add LIMIT and OFFSET parameters
-    params.push(limit, offset)
-    const dataQueryStr = `
+    // Get paginated data using template literal with dynamic ORDER BY
+    const dataResult = await sql`
       SELECT 
         id, request_reference, status, validation_status, validation_errors,
         first_name, last_name, birth_date, email, phone_number,
@@ -66,12 +67,10 @@ export async function GET(request: NextRequest) {
         lemonway_wallet_id, profile_type,
         created_at, updated_at, submitted_at, kyc_1_completed_at, kyc_2_completed_at
       FROM investors.lemonway_account_requests 
-      WHERE ${whereClause}
-      ORDER BY ${sortColumn} ${order}
-      LIMIT $${params.length - 1} OFFSET $${params.length}
+      WHERE ${sql.unsafe(whereClause)}
+      ORDER BY ${sql.unsafe(`${sortColumn} ${order}`)}
+      LIMIT ${limit} OFFSET ${offset}
     `
-
-    const dataResult = await sql.query(dataQueryStr, params)
 
     const pages = Math.ceil(total / limit)
 

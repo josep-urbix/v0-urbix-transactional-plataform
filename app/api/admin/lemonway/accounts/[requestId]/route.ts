@@ -6,7 +6,7 @@
  */
 
 import { getSession, requirePermission } from "@/lib/auth"
-import { sql } from "@neondatabase/serverless"
+import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
 
 export async function GET(request: NextRequest, { params }: { params: { requestId: string } }) {
@@ -25,8 +25,9 @@ export async function GET(request: NextRequest, { params }: { params: { requestI
 
     const { requestId } = params
 
-    if (!requestId) {
-      return NextResponse.json({ error: "requestId requerido" }, { status: 400 })
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!requestId || !uuidRegex.test(requestId)) {
+      return NextResponse.json({ error: "requestId inválido: debe ser un UUID válido" }, { status: 400 })
     }
 
     const results = await sql`

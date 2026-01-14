@@ -1,5 +1,5 @@
 import { sql } from "@/lib/db"
-import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth/next"
 import { NextResponse } from "next/server"
 import { LemonwayClient } from "@/lib/lemonway-client"
 

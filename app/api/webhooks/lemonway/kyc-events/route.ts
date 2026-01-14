@@ -14,7 +14,7 @@
  * Trazabilidad: Especificación Sección 3 - FASE 2
  */
 
-import { sql } from "@neondatabase/serverless"
+import { sql } from "@/lib/db"
 import { type NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import { getLemonwayWebhookSecret } from "@/lib/lemonway-config-manager"

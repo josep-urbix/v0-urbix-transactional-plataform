@@ -17,10 +17,9 @@ const PROFILE_TYPES = [
   { value: "PAYER", label: "Pagador" },
 ]
 
-export default function CreateAccountForm() {
+export default function CreateAccountForm({ onSuccess, selectedRequestId }) {
   const [isLoadingCountries, setIsLoadingCountries] = useState(false)
   const [countries, setCountries] = useState([])
-  const [editingRequestId, setEditingRequestId] = useState(null)
   const [isLoadingEditData, setIsLoadingEditData] = useState(false)
   const [formData, setFormData] = useState({
     first_name: "",
@@ -63,9 +62,47 @@ export default function CreateAccountForm() {
   }, [])
 
   useEffect(() => {
+    if (!selectedRequestId) return
+
+    const loadEditData = async () => {
+      setIsLoadingEditData(true)
+      try {
+        const response = await fetch(`/api/admin/lemonway/accounts/${selectedRequestId}`)
+        const result = await response.json()
+
+        if (result.success && result.data) {
+          const account = result.data
+          setFormData({
+            first_name: account.first_name || "",
+            last_name: account.last_name || "",
+            birth_date: account.birth_date || "",
+            email: account.email || "",
+            phone_number: account.phone_number || "",
+            birth_country_id: account.birth_country_id || "",
+            nationality_ids: account.nationality_ids || [],
+            profile_type: account.profile_type || "",
+            street: account.street || "",
+            city: account.city || "",
+            postal_code: account.postal_code || "",
+            country_id: account.country_id || "",
+            province: account.province || "",
+          })
+          window.scrollTo({ top: 0, behavior: "smooth" })
+        }
+      } catch (error) {
+        console.error("[v0] Error loading request data:", error)
+      } finally {
+        setIsLoadingEditData(false)
+      }
+    }
+
+    loadEditData()
+  }, [selectedRequestId])
+
+  useEffect(() => {
     const handleEditEvent = async (event) => {
       const requestId = event.detail
-      setEditingRequestId(requestId)
+      // setEditingRequestId(requestId)
       setIsLoadingEditData(true)
 
       try {
@@ -202,6 +239,7 @@ export default function CreateAccountForm() {
       })
       setErrors({})
       alert("Cuenta creada exitosamente")
+      onSuccess()
     } catch (error) {
       console.error("[v0] Account creation error:", error)
       setErrors({ submit: error.message })

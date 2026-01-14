@@ -46,7 +46,7 @@ export default function LemonwayAccountsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CreateAccountForm onSuccess={handleRequestCreated} />
+              <CreateAccountForm onSuccess={handleRequestCreated} selectedRequestId={selectedRequestId} />
             </CardContent>
           </Card>
         </TabsContent>
