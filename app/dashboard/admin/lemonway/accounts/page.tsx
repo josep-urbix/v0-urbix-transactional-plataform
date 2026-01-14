@@ -19,7 +19,7 @@ export default function LemonwayAccountsPage() {
 
   const handleEditRequest = (requestId: string) => {
     setSelectedRequestId(requestId)
-    setActiveTab("kyc") // Switch to KYC form for editing
+    setActiveTab("create")
   }
 
   return (

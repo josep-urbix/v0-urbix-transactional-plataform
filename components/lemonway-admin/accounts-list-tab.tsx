@@ -26,7 +26,12 @@ interface AccountRequest {
   updated_at: string
 }
 
-function AccountsListTab() {
+interface AccountsListTabProps {
+  onSelectRequest?: (requestId: string) => void
+  selectedRequestId?: string | null
+}
+
+function AccountsListTab({ onSelectRequest, selectedRequestId }: AccountsListTabProps) {
   const [accounts, setAccounts] = useState<AccountRequest[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -108,7 +113,9 @@ function AccountsListTab() {
       alert("Solo se pueden editar solicitudes en estado DRAFT")
       return
     }
-    window.dispatchEvent(new CustomEvent("editAccount", { detail: account.id }))
+    if (onSelectRequest) {
+      onSelectRequest(account.id)
+    }
   }
 
   const handleDelete = (account: AccountRequest) => {

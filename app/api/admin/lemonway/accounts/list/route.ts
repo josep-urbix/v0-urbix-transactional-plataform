@@ -56,12 +56,29 @@ export async function GET(request: NextRequest) {
 
     const whereClause = whereConditions.join(" AND ")
 
-    // Build dynamic WHERE clause using sql.query() with proper parameter binding
-    const countQuery = `
-      SELECT COUNT(*) as total FROM investors.lemonway_account_requests 
-      WHERE ${whereClause}
-    `
-    const dataQuery = `
+    // Build dynamic WHERE clause using template literals with proper parameter binding
+    let countQuery: string
+    let dataQuery: string
+    const params = queryParams
+
+    if (search) {
+      countQuery = sql`
+        SELECT COUNT(*) as total FROM investors.lemonway_account_requests 
+        WHERE ${sql(whereClause)}
+      `.text
+    } else {
+      countQuery = sql`
+        SELECT COUNT(*) as total FROM investors.lemonway_account_requests 
+        WHERE deleted_at IS NULL
+        ${status ? sql`AND status = ${status}` : sql``}
+        ${validation_status ? sql`AND validation_status = ${validation_status}` : sql``}
+      `.text
+    }
+
+    const countResult = await sql.unsafe(countQuery, queryParams)
+    const total = countResult[0]?.total || 0
+
+    const dataQueryStr = `
       SELECT 
         id, request_reference, status, validation_status, first_name, last_name, email,
         lemonway_wallet_id, created_at, updated_at, submitted_at, kyc_1_completed_at,
@@ -69,14 +86,11 @@ export async function GET(request: NextRequest) {
       FROM investors.lemonway_account_requests 
       WHERE ${whereClause}
       ORDER BY ${sortColumn} ${order}
-      LIMIT ${limit} OFFSET ${offset}
+      LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
     `
+    queryParams.push(limit, offset)
 
-    // Execute queries with parameterized values
-    const countResult = await sql.query(countQuery, queryParams)
-    const total = countResult[0]?.total || 0
-
-    const dataResult = await sql.query(dataQuery, queryParams)
+    const dataResult = await sql.unsafe(dataQueryStr, queryParams)
 
     const pages = Math.ceil(total / limit)
 
