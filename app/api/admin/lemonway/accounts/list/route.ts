@@ -32,34 +32,39 @@ export async function GET(request: NextRequest) {
     const offset = (page - 1) * limit
 
     const whereConditions: string[] = ["deleted_at IS NULL"]
-    let searchTerm: string | null = null
+    const params: any[] = []
+    let paramIndex = 1
 
     if (status) {
-      whereConditions.push(`status = '${status.replace(/'/g, "''")}'`)
+      whereConditions.push(`status = $${paramIndex}`)
+      params.push(status)
+      paramIndex++
     }
 
     if (validation_status) {
-      whereConditions.push(`validation_status = '${validation_status.replace(/'/g, "''")}'`)
+      whereConditions.push(`validation_status = $${paramIndex}`)
+      params.push(validation_status)
+      paramIndex++
     }
 
     if (search) {
-      searchTerm = `%${search.replace(/'/g, "''").toLowerCase()}%`
+      const searchTerm = `%${search.toLowerCase()}%`
       whereConditions.push(
-        `(LOWER(first_name) LIKE '${searchTerm}' OR LOWER(last_name) LIKE '${searchTerm}' OR LOWER(email) LIKE '${searchTerm}' OR request_reference LIKE '${searchTerm.replace(/%/g, "")}%')`,
+        `(LOWER(first_name) LIKE $${paramIndex} OR LOWER(last_name) LIKE $${paramIndex} OR LOWER(email) LIKE $${paramIndex} OR request_reference ILIKE $${paramIndex})`,
       )
+      params.push(searchTerm, searchTerm, searchTerm, search)
+      paramIndex += 4
     }
 
     const whereClause = whereConditions.join(" AND ")
 
-    // Get total count using template literal
-    const countResult = await sql`
-      SELECT COUNT(*) as total FROM investors.lemonway_account_requests 
-      WHERE ${sql.unsafe(whereClause)}
-    `
+    // Get total count
+    const countQuery = `SELECT COUNT(*) as total FROM investors.lemonway_account_requests WHERE ${whereClause}`
+    const countResult = await sql.query(countQuery, params)
     const total = countResult[0]?.total || 0
 
-    // Get paginated data using template literal with dynamic ORDER BY
-    const dataResult = await sql`
+    // Get paginated data
+    const dataQuery = `
       SELECT 
         id, request_reference, status, validation_status, validation_errors,
         first_name, last_name, birth_date, email, phone_number,
@@ -67,10 +72,12 @@ export async function GET(request: NextRequest) {
         lemonway_wallet_id, profile_type,
         created_at, updated_at, submitted_at, kyc_1_completed_at, kyc_2_completed_at
       FROM investors.lemonway_account_requests 
-      WHERE ${sql.unsafe(whereClause)}
-      ORDER BY ${sql.unsafe(`${sortColumn} ${order}`)}
-      LIMIT ${limit} OFFSET ${offset}
+      WHERE ${whereClause}
+      ORDER BY ${sortColumn} ${order}
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
     `
+    const dataParams = [...params, limit, offset]
+    const dataResult = await sql.query(dataQuery, dataParams)
 
     const pages = Math.ceil(total / limit)
 

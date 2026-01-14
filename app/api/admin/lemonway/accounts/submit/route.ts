@@ -1,5 +1,5 @@
 import { sql } from "@/lib/db"
-import { getServerSession } from "next-auth/next"
+import { getSession } from "@/lib/auth"
 import { NextResponse } from "next/server"
 import { LemonwayClient } from "@/lib/lemonway-client"
 
@@ -7,7 +7,7 @@ const lemonwayClient = new LemonwayClient() // Declare the lemonwayClient variab
 
 export async function POST(req) {
   try {
-    const session = await getServerSession()
+    const session = await getSession()
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
